@@ -60,7 +60,8 @@ def run():
     #print "Min DP %s" % min_dp
     #print "Bamfolder: %s" % args["bamfolder"] 
     #print "Bedfile: %s" % args["bedfile"]
-    root.destroy()
+    
+    #root.destroy()
     CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value)
     
 if __name__ == '__main__':
