@@ -4,6 +4,7 @@ import os
 import time
 import CoverageCheck as CC
 
+
 def run_CC():
     min_dp = int(fieldValues[0])
     max_strand_ratio = int(fieldValues[1])

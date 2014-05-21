@@ -9,6 +9,10 @@ import os
 import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
+import plot_exon_coverage as plotting
+import plot_exon_coverage_all_samples as all_sample_plotting
+import unite_coverage_files as UniteCoverage
+
 
 #TODO:
 # deal with failed bedtool runs which leave empty files behind
@@ -129,12 +133,13 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
         whitelist = {}
         with open(whitelist_filename) as handle:
             for row in handle:
+                if row[0] == "#": continue
                 f = row.strip().split("\t")
                 chrom, pos = f[:2]
                 chrompos = chrom + "\t" + pos
                 whitelist[chrompos] = row
     
-        whitelist_output_name = target_folder + sample + "_%s.txt" % (trait)
+        whitelist_output_name = target_folder + sample + "_variants_failed_%s.txt" % (trait)
         whitelist_output = open(whitelist_output_name, "w")
     
     for index, pandas_dict in coverage_matrix.iterrows():
@@ -255,7 +260,7 @@ def check_bed_filetype(filename):
 #####################################################################################################################
 #####################################################################################################################
 
-def run(bed, target_folder, min_dp, max_strand_ratio):
+def run(bed, target_folder, min_dp, max_strand_ratio, whitelist=None):
         
     print "-" * 100
     
@@ -266,8 +271,17 @@ def run(bed, target_folder, min_dp, max_strand_ratio):
     bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]    
     
     print "Target folder: %s" % target_folder
+    if whitelist:
+        print "Expected variants to check: %s" % whitelist
+    else:
+        print "No expected variants specified."
+    
     print "Found %s bams to process." % len(bams)
     print "-" * 100
+    
+    all_sample_filename = "all_samples.tsv"
+    UniteCoverage.unite(all_sample_filename, target_folder = target_folder)
+    all_sample_plotting.plot_exon_coverage(all_sample_filename, target_folder = target_folder)
     
     for bam in bams:
         samplename = bam.split(".")[0]
@@ -281,21 +295,26 @@ def run(bed, target_folder, min_dp, max_strand_ratio):
         
         coverage_matrix = parse_coverage_file_into_dataframe(bedtools_output)
         
-        find_bad_positions(coverage_matrix, target_folder = target_folder, trait = "coverage", samplename = samplename, trait_cutoff = min_dp)
-        find_bad_positions(coverage_matrix, target_folder = target_folder, trait = "strandbias", samplename = samplename, trait_cutoff = max_strand_ratio)
-
-        #find_undercovered_positions(coverage_matrix, samplename= samplename, dp_cutoff = min_dp)
-        #find_strandbiased_positions(coverage_matrix, samplename= samplename, max_strand_ratio = max_strand_ratio)
+        ##############################################################################################
+        # run
         
-        #print "Finished", bam
+        find_bad_positions(coverage_matrix, target_folder = target_folder, trait = "coverage",
+                           samplename = samplename, trait_cutoff = min_dp, whitelist_filename=whitelist)
+        find_bad_positions(coverage_matrix, target_folder = target_folder, trait = "strandbias",
+                           samplename = samplename, trait_cutoff = max_strand_ratio, whitelist_filename=whitelist)
+    
+        ##############################################################################################
+        # plot
+        
+        plotting.plot_exon_coverage(bedtools_output, target_folder = target_folder)
+        
         print "-" * 100
     
-
-
 ##################################################################################
 
 if __name__ == "__main__":
     bed = sys.argv[1]
+    whitelist = sys.argv[2]
     
     if "/" in bed:
         target_folder = "/".join(bed.split("/")[:-1])
@@ -305,7 +324,7 @@ if __name__ == "__main__":
     min_dp = 50
     max_strand_ratio = 5
     
-    run(bed, target_folder, min_dp, max_strand_ratio)
+    run(bed, target_folder, min_dp, max_strand_ratio, whitelist=whitelist)
 
     
     

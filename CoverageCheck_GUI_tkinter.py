@@ -1,6 +1,7 @@
 from Tkinter import *
 from tkFileDialog   import askopenfilename, askdirectory      
 import CoverageCheck as CC
+import os
 
 fields = 'Minimum Coverage', 'Maximum Strandbias'
 bamfolder = None
@@ -45,13 +46,20 @@ def fetch_bamfolder():
 
 def fetch_bedfile():
     global bedfile
-    selection = askopenfilename()
+    selection = askopenfilename(initialdir=bamfolder.get())
     bedfile.set(selection)
     args["bedfile"] = selection    
+
+def fetch_whitelist():
+    global whitelist
+    selection = askopenfilename(initialdir=bamfolder.get())
+    whitelist.set(selection)
+    args["whitelist"] = selection  
 
 def run():
     bed = bedfile.get()
     target_folder = bamfolder.get()
+    whitelist_file = whitelist.get()
     min_dp_value = int(min_dp.get())
     max_strand_ratio_value = int(max_strand_ratio.get())
     #min_dp = int(ents[0][1].get())
@@ -60,9 +68,27 @@ def run():
     #print "Min DP %s" % min_dp
     #print "Bamfolder: %s" % args["bamfolder"] 
     #print "Bedfile: %s" % args["bedfile"]
+    ##############################################################
+    # check the variables
     
-    #root.destroy()
-    CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value)
+    error_msg.set("")
+    
+    if not os.path.exists(target_folder):
+      new_msg = "Bam folder does not contain bam files." 
+      error_msg.set(new_msg)
+      
+    bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]
+    if not bams:
+      new_msg = "Bam folder does not contain bam files." 
+      error_msg.set(new_msg)
+        
+    ##############################################################
+    
+    if error_msg.get() != "":
+      pass
+    else:
+      root.destroy()
+      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist=whitelist_file)
     
 if __name__ == '__main__':
   root = Tk()
@@ -126,6 +152,32 @@ if __name__ == '__main__':
   row.pack(side=TOP, fill=X, padx=5, pady=5)
   fixed_label.pack(side=LEFT)
   var_label.pack(side=RIGHT, expand=YES)
+
+  ##########################################
+  # Show the selected whitelist
+
+  whitelist = StringVar()
+  #bedfile.set('Not selected')  
+  whitelist.set(None)
+  
+  row = Frame(root)
+  fixed_label = Label(row, width=15, text="Expected variants", anchor='w')
+  var_label = Label(row, textvariable = whitelist)
+  
+  row.pack(side=TOP, fill=X, padx=5, pady=5)
+  fixed_label.pack(side=LEFT)
+  var_label.pack(side=RIGHT, expand=YES)
+
+  ##########################################
+  # Show an error message
+  
+  error_msg = StringVar()
+  error_msg.set("Please select your parameters")
+  
+  row = Frame(root)
+  row.pack(side=TOP, fill=X, padx=5, pady=50)
+  var_label = Label(row, textvariable = error_msg)
+  var_label.pack(side=RIGHT, expand=YES)
   
   ###########################################
   # Create the buttons
@@ -135,12 +187,15 @@ if __name__ == '__main__':
   
   b2 = Button(root, text='Select region file', command=fetch_bedfile)
   b2.pack(side=LEFT, padx=5, pady=5)
+
+  b3 = Button(root, text='Select expected variants', command=fetch_whitelist)
+  b3.pack(side=LEFT, padx=5, pady=5)
   
-  b2 = Button(root, text='Quit', command=root.quit)
-  b2.pack(side=RIGHT, padx=5, pady=5)
+  b4 = Button(root, text='Quit', command=root.quit)
+  b4.pack(side=RIGHT, padx=5, pady=5)
   
-  b1 = Button(root, text='Start CoverageCheck',command=run)
-  b1.pack(side=RIGHT, padx=5, pady=5)
+  b5 = Button(root, text='Start CoverageCheck',command=run)
+  b5.pack(side=RIGHT, padx=5, pady=5)
   
   ###########################################
   
