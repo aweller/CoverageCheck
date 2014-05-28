@@ -28,25 +28,25 @@ For each sample, CoverageCheck creates a results folder with the following outpu
 
 2. [sample]_coverage_raw_exon_coverage.png
 
-A graph with a boxplot for each exon, showing the coverage distribution across exons per gene. Exons are simply plotted next to each other.
+    A graph with a boxplot for each exon, showing the coverage distribution across exons per gene. Exons are simply plotted next to each other.
 
 3. [sample]_failed_regions_coverage.tsv
 
-A list of bases that fail the coverage cutoff. Continous streches of bases are summarized as a region. 
+    A list of bases that fail the coverage cutoff. Continous streches of bases are summarized as a region. 
 
 4. [sample]_failed_regions_strandbias.tsv
 
-A list of bases that fail the strandbias cutoff. Continous streches of bases are summarized as a region. 
+    A list of bases that fail the strandbias cutoff. Continous streches of bases are summarized as a region. 
 
 If a list of expected variants is provided, two additional output files are produced:
 
 5. [sample]_expected_variant_coverage.tsv
 
-A list of all variant position in the original vcf, with columns added for coverage, strandbias and whether the position passes the cutoffs.
+    A list of all variant position in the original vcf, with columns added for coverage, strandbias and whether the position passes the cutoffs.
 
 5. [sample]_expected_variant_coverage_per_gene.tsv
 
-A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be theoretically discoverable and the ratio fo discoverable to total is listed.
+    A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be         theoretically discoverable and the ratio fo discoverable to total is listed.
 
 #####################################################################################
 
