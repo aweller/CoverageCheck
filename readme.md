@@ -25,7 +25,10 @@ Alternatively, a GUI is started with
 
 > *"python CoverageCheck_GUI_tkinter.py".*
 
-The user provides the minimum accepted coverage, the maximum accepted strand ratio and the location of the bam folder, the region file and (optionally) a vcf file of expected variants can be provided. The script creates output files for all samples.
+The user provides:
+- the minimum accepted coverage
+- the maximum accepted strand ratio
+- the location of the bam folder, the region file and (optionally) a vcf file of expected variants. 
 
 For each sample, CoverageCheck creates a results folder with the following output files:
 1. [sample]_coverage_raw_exon_coverage.png
