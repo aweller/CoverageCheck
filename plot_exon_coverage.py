@@ -160,6 +160,7 @@ def plot_exon_coverage(filename, target_folder = None):
     sample = filename.split("/")[-1].split(".")[0]
     title = target_folder + sample + " raw exon coverage"
     plt.savefig(title.replace(" ", "_")+".png", dpi=300)
+    plt.close()
     
     #######################################################################################    
     # plot boxplots vs exon counts
@@ -220,6 +221,7 @@ def plot_exon_coverage(filename, target_folder = None):
     sample = filename.split("/")[-1].split(".")[0]
     title = target_folder + sample + " summarized exon coverage"
     plt.savefig(title.replace(" ", "_")+".png", dpi=300)
+    plt.close()
 
 
 ####################################################################################

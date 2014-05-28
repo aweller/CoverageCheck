@@ -6,7 +6,7 @@ def convert_manifest(manifest_file):
     
     stem = manifest_file.split(".")[0]
     all_out_file = stem + ".bed"
-    plusminus_out_file = stem + "_plusminus.bed"
+    plusminus_out_file = stem + "_separate_strands.bed"
     
     all_out = open(all_out_file, "w")
     plusminus = open(plusminus_out_file, "w")

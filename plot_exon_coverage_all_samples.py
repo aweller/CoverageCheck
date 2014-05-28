@@ -9,7 +9,7 @@ def plot_exon_coverage(filename, target_folder = "./"):
     
     header = ["sample", "chr", "start", "stop", "amplicon", "na", "strand",  "amplicon_pos", "dp"]
     
-    df = pd.read_csv(filename, sep="\t", names=header)
+    df = pd.read_csv(target_folder + filename, sep="\t", names=header)
     df["pos"] = df.start +df.amplicon_pos
     df["chrompos"] = df.apply(lambda x : "_".join([str(x["chr"]), str(x["pos"]) ]), axis = 1 ) 
     df["name"] = df.amplicon 
@@ -28,7 +28,7 @@ def plot_exon_coverage(filename, target_folder = "./"):
     
     exon_summary = pd.DataFrame(dict(mean_dp = df.dp.groupby(df.gene).mean().round().astype(int), median_dp = df.dp.groupby(df.gene).median())).reset_index()
     title = "all samples exon summary"
-    exon_summary.to_csv(target_folder + title.replace(" ", "_")+".tsv", sep = "\t")
+    exon_summary.to_csv(target_folder + title.replace(" ", "_")+".tsv", sep = "\t", index=False)
     
     ##################################################################################################
     
@@ -131,6 +131,7 @@ def plot_exon_coverage(filename, target_folder = "./"):
     
     title = "all samples summarized exon coverage boxplots"
     plt.savefig(target_folder + title.replace(" ", "_")+".png", dpi=300)
+    plt.close()
     
     ##################################################################################################
     # plot a line with the mean per exon per sample
@@ -187,3 +188,4 @@ def plot_exon_coverage(filename, target_folder = "./"):
     
     title = "all samples summarized exon coverage lineplots"
     plt.savefig(target_folder + title.replace(" ", "_")+".png", dpi=300)
+    plt.close()

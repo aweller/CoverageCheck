@@ -3,7 +3,6 @@ import os
 def unite(output, target_folder = "./"):
 	files = [x for x in os.listdir(target_folder) if x.endswith("_coverage.tsv")]
 	
-	
 	with open(target_folder + output, "w") as out:
 		for filename in files:
 			sample = filename[:-13]
