@@ -22,9 +22,9 @@ CoverageCheck can also be started directly from the command line: "python Covera
 Alternatively, a GUI is started with "python CoverageCheck_GUI_tkinter.py". The user provides the minimum accepted coverage, the maximum accepted strand ratio and the location of the bam folder, the region file and (optionally) a vcf file of expected variants can be provided. The script creates output files for all samples.
 
 For each sample, CoverageCheck creates a results folder with the following output files:
-1. [sample]_coverage_raw_exon_coverage.png
+- [sample]_coverage_raw_exon_coverage.png
 
-A graph with a dot for each base, showing the coverage across exons per gene. Exons plotted on their actual chromosome location.
+    A graph with a dot for each base, showing the coverage across exons per gene. Exons plotted on their actual chromosome location.
 
 2. [sample]_coverage_raw_exon_coverage.png
 
