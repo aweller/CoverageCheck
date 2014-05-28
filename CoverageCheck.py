@@ -1,5 +1,7 @@
-# read an output file from
+# read a bedtools output file from
+#
 # bedtools coverage -abam Q2PL2_H01_N.bam -b TSB_148_gene_panel_HP_amplicons.bed -d > test_coverage.tsv
+#
 # and find bases with coverage or strand_ratio below the threshold
 
 # general modules
@@ -11,6 +13,7 @@ import matplotlib.pylab as plt
 import seaborn as sns
 import numpy as np
 import pprint
+import logging
 
 # personal modules from the same folder
 import plot_exon_coverage as plotting
@@ -146,9 +149,12 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
     pass_percent = 100 * round( good_bases / float(total_bases), 3)
     
     if trait == "strandbias":
-        print "%s percent (%s/%s) of positions in %s have a strand bias below the threshold (%s:1)." % (pass_percent, good_bases, total_bases, sample, trait_cutoff)
+        logging.info( "%s percent (%s/%s) of positions in %s have a strand bias below the threshold (%s:1)."
+                     % (pass_percent, good_bases, total_bases, sample, trait_cutoff) )
+        
     elif trait == "coverage":
-        print "%s percent (%s/%s) of positions in %s have at least the minimum coverage of %sX." % (pass_percent, good_bases, total_bases, sample, trait_cutoff)
+        logging.info( "%s percent (%s/%s) of positions in %s have at least the minimum coverage of %sX."
+                     % (pass_percent, good_bases, total_bases, sample, trait_cutoff) )
     
     return whitelist
     
@@ -156,7 +162,7 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
 
 def run_bedtools(bam, output, bed = None):
     bedtools_cmd = "bedtools coverage -s -d -abam %s -b %s > %s" % (bam, bed, output)
-    #print bedtools_cmd
+    logging.debug( bedtools_cmd )
     subprocess.call(bedtools_cmd, shell=True)
 
 def check_bed_filetype(filename):
@@ -169,32 +175,32 @@ def check_bed_filetype(filename):
     if not "Header" in rows[0]: 
         
         if all([len(row.split("\t")) == 6 for row in rows]):
-            print "Correct bed file detected:", filename
+            logging.info( "Correct bed file detected: "+ filename )
             return filename
         
         else:
-            print "Error in input bed file:", filename
-            print "Not all rows contain 6 fields as is expected."
-            print "Sorry, aborting..."
+            logging.error( "Error in input bed file:", filename )
+            logging.error( "Not all rows contain 6 fields as is expected." )
+            logging.error( "Sorry, aborting..." )
             sys.exit()
     
     else: # this is an Illumina manifest file
         
-        print "Input is not a bed file, but an Illumina manifest file:", filename
+        logging.error( "Input is not a bed file, but an Illumina manifest file:", filename )
         
         expected_bed = filename[:-4] + "_plusminus.bed"
                 
         if os.path.exists(expected_bed):
-            print "Switching to existing bed file:", expected_bed
+            logging.info( "Switching to existing bed file:", expected_bed )
             return expected_bed
         
         else:
-            print "Converting manifest to bed."
+            logging.info( "Converting manifest to bed." )
             
             import manifest2bed as m2b
             all_out, plusminus = m2b.convert_manifest(filename)
             
-            print "Switching to newly created bed file:", plusminus
+            logging.info( "Switching to newly created bed file:", plusminus )
             return plusminus
 
 def remove_empty_files_from_folder(folder):
@@ -206,80 +212,105 @@ def remove_empty_files_from_folder(folder):
 #####################################################################################################################
 
 def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
-    
+
     remove_empty_files_from_folder(target_folder) # remove empty files that might have been left over from previous runs
-    bed = check_bed_filetype(bed)
-        
-    print "-" * 100
     
-    print "Minimum accepted coverage per base: %sX" % (min_dp)
-    print "Maximum accepted coverage ratio between strands: %s:1" % (max_strand_ratio)
+    ##############################################################################################
+    # configure logging to both sys.stdout and a file 
+    
+    logging_filename = "CoverageCheck_log.txt"
+    print "Log messages printed to %s" % (logging_filename)
+    
+    # set up logging to file
+    logging.basicConfig(level=logging.DEBUG,
+                  format='%(asctime)s %(name)-8s %(levelname)-8s %(message)s',
+                  datefmt='%d-%m-%y %H:%M',
+                  filename=logging_filename)
+    
+    # set up logging to console
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    # add the handler to the root logger
+    logging.getLogger('').addHandler(console)
+        
+    #####################################################
+    # setup variables and report information 
+    
+    logging.info( "-" * 100 )
+    
+    bed = check_bed_filetype(bed)
+            
+    logging.info( "Minimum accepted coverage per base: %sX" % (min_dp) )
+    logging.info( "Maximum accepted coverage ratio between strands: %s:1" % (max_strand_ratio) )
     
     target_folder = target_folder + "/" # just to be on the safe side    
     bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]    
+    logging.info( "Target folder: %s" % target_folder )
     
-    print "Target folder: %s" % target_folder
+
     if whitelist_filename:
         variant_no = len([x for x in open(whitelist_filename).readlines() if x[0] != "#"])
-        print "Found %s expected variants to check in %s" % (variant_no, whitelist_filename)
+        logging.info( "Found %s expected variants to check in %s" % (variant_no, whitelist_filename) )
         
         if variant_no == 0:
-            print "ERROR: expected variant file doesn't contain variants."
+            logging.critical( "ERROR: expected variant file doesn't contain variants." )
             sys.exit()
         
     else:
-        print "No expected variants specified."
+        logging.info( "No expected variants specified." )
     
-    print "Found %s bams to process." % len(bams)
-    print "-" * 100
+    logging.info( "Found %s bams to process." % len(bams) )
+    logging.info( "-" * 100 )
 
     ##############################################################################################
     # process each samples separately
     
-    #for bam in bams:
-    #    
-    #    samplename = bam.split(".")[0]
-    #    sample_output_folder = "%s/%s_results/" % (target_folder, samplename)
-    #    
-    #    if not os.path.exists(sample_output_folder):
-    #        os.makedirs(sample_output_folder)
-    #    
-    #    ##############################################################################################
-    #    # create the coverage file (if necessary) and parse it into a pandas DF
-    #    
-    #    bedtools_output = target_folder + samplename + "_coverage.tsv"
-    #    
-    #    if not os.path.exists(bedtools_output):
-    #        print "Running bedtools coverage for:", bam
-    #        run_bedtools(target_folder + bam, output = bedtools_output, bed=bed)
-    #    
-    #    coverage_matrix = parse_coverage_file_into_dataframe(bedtools_output)
-    #    
-    #    ##############################################################################################
-    #    # Initialize the class instance thats collects information on each expected variant
-    #    
-    #    whitelist = None
-    #    if whitelist_filename:
-    #        whitelist = CoverageCheckClasses.ExpectedVariants(whitelist_filename, samplename=samplename, folder=sample_output_folder,
-    #                                    dp_cutoff = min_dp, strandbias = max_strand_ratio)
-    #    
-    #    ##############################################################################################
-    #    # run
-    #    
-    #    whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "coverage",
-    #                       samplename = samplename, trait_cutoff = min_dp, whitelist=whitelist)
-    #    whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "strandbias",
-    #                       samplename = samplename, trait_cutoff = max_strand_ratio, whitelist=whitelist)
-    #    
-    #    if whitelist_filename:
-    #        whitelist.print_output()
-    #    
-    #    ##############################################################################################
-    #    # plot
-    #    
-    #    plotting.plot_exon_coverage(bedtools_output, target_folder = sample_output_folder)
-    #    print "-" * 100
-    #    
+    for bam in bams:
+        
+        samplename = bam.split(".")[0]
+        sample_output_folder = "%s/%s_results/" % (target_folder, samplename)
+        
+        if not os.path.exists(sample_output_folder):
+            os.makedirs(sample_output_folder)
+        
+        ##############################################################################################
+        # create the coverage file (if necessary) and parse it into a pandas DF
+        
+        bedtools_output = target_folder + samplename + "_coverage.tsv"
+        
+        if not os.path.exists(bedtools_output):
+            logging.info( "Running bedtools coverage for:", bam )
+            run_bedtools(target_folder + bam, output = bedtools_output, bed=bed)
+        
+        coverage_matrix = parse_coverage_file_into_dataframe(bedtools_output)
+        
+        ##############################################################################################
+        # Initialize the class instance thats collects information on each expected variant
+        
+        whitelist = None
+        if whitelist_filename:
+            whitelist = CoverageCheckClasses.ExpectedVariants(whitelist_filename, samplename=samplename, folder=sample_output_folder,
+                                        dp_cutoff = min_dp, strandbias = max_strand_ratio)
+        
+        ##############################################################################################
+        # run
+        
+        whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "coverage",
+                           samplename = samplename, trait_cutoff = min_dp, whitelist=whitelist)
+        whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "strandbias",
+                           samplename = samplename, trait_cutoff = max_strand_ratio, whitelist=whitelist)
+        
+        if whitelist_filename:
+            whitelist.print_output()
+        
+        ##############################################################################################
+        # plot
+        
+        plotting.plot_exon_coverage(bedtools_output, target_folder = sample_output_folder)
+        logging.info(  "-" * 100 )
+        
     ##############################################################################################
     # create summaries across all samples
     # this has to happen after the individual bam treatment because it assumes that coverage files for each bam are present
@@ -290,13 +321,11 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     byte_size = os.path.getsize(target_folder+all_sample_filename)
     mb_size = byte_size/1.049e+6
     
-    if mb_size > 1000:
-        print "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2))    
+    if mb_size > 2000:
+        logging.error( "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2)) )     
     else:
         all_sample_plotting.plot_exon_coverage(all_sample_filename, target_folder = target_folder)
-    
-    all_sample_plotting.plot_exon_coverage(all_sample_filename, target_folder = target_folder)
-    
+        
 ##################################################################################
 
 if __name__ == "__main__":

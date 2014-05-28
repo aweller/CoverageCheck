@@ -5,6 +5,7 @@ import seaborn as sns
 import scipy.stats
 from IPython.html.widgets import interact
 import os
+import logging
 
 def plot_exon_coverage(filename, target_folder = None):
     
@@ -152,7 +153,7 @@ def plot_exon_coverage(filename, target_folder = None):
             plt.xticks(locs, labels)
         
         except:
-            print "Gene %s in sample %s is not in the exon list, skipping." % (gene, sample)
+            logging.warning( "Gene %s in sample %s is not in the exon list, skipping." % (gene, sample))
             
             
     plt.tight_layout()
