@@ -31,6 +31,7 @@ The user provides:
 - the location of the bam folder, the region file and (optionally) a vcf file of expected variants. 
 
 For each sample, CoverageCheck creates a results folder with the following output files:
+
 1. [sample]_coverage_raw_exon_coverage.png
 
     A graph with a dot for each base, showing the coverage across exons per gene. Exons plotted on their actual chromosome location.
