@@ -17,12 +17,18 @@ below the maximum accepted strand ratio.
 
 ##Usage
 
-CoverageCheck can also be started directly from the command line: "python CoverageCheck.py regions.bed expected_variants.vcf"
+CoverageCheck can also be started directly from the command line:
 
-Alternatively, a GUI is started with "python CoverageCheck_GUI_tkinter.py". The user provides the minimum accepted coverage, the maximum accepted strand ratio and the location of the bam folder, the region file and (optionally) a vcf file of expected variants can be provided. The script creates output files for all samples.
+> *"python CoverageCheck.py regions.bed expected_variants.vcf"*
+
+Alternatively, a GUI is started with
+
+> *"python CoverageCheck_GUI_tkinter.py".*
+
+The user provides the minimum accepted coverage, the maximum accepted strand ratio and the location of the bam folder, the region file and (optionally) a vcf file of expected variants can be provided. The script creates output files for all samples.
 
 For each sample, CoverageCheck creates a results folder with the following output files:
-- [sample]_coverage_raw_exon_coverage.png
+1. [sample]_coverage_raw_exon_coverage.png
 
     A graph with a dot for each base, showing the coverage across exons per gene. Exons plotted on their actual chromosome location.
 
@@ -54,5 +60,6 @@ If a list of expected variants is provided, two additional output files are prod
 
 All bams to be analyzed need to be in a folder, together with the  file specifying the sequenced regions (in bed or Illumina manifest format). 
 
-CoverageCheck expects a Linux system with Python 2.7 and bedtools installed. The following Python packages are expected as well: numpy, pandas, matplotlib and seaborn.  
+CoverageCheck expects a Linux system with Python 2.7 and bedtools installed. The following Python packages are expected as well: numpy, pandas, matplotlib and seaborn.
+
 The bam files need to be indexed (i.e. have a *.bam.bai file in the same folder). If missing, this can be created with "samtools index sample.bam"
