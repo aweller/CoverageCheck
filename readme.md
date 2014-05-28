@@ -2,13 +2,13 @@
 
 ##Introduction
 
-This script was mainly written for a clinical diagnostics setting. The use case is where a group of patients was sequenced using a panel. For clinical decision making, it is crucial to distinguish between 
+This script was mainly written for a clinical diagnostics setting. The use case is where a group of patients was sequenced using a panel. It is crucial to distinguish between 
 
 A) high-confidence positions with a reference allele and
 
 B) low-confidence positions where a variant call is impossible.
 
-A priori, A) and B) would look the same on a clinical report: "no variants found", but it's quite a difference if a patient is wildtype on TP53 or if we can't make a statement about TP53.
+Without coverage information, A) and B) would look the same on a clinical report: "no variants found". For clinical decision making though, it's quite a difference if a patient is wildtype on TP53 or if we can't make a statement about TP53.
 
 High-confidence positions are defined as having a coverage above the minimum accepted coverage (default 50X) and a ratio of coverage on minus vs plus strand (default 5x)
 below the maximum accepted strand ratio.
@@ -17,7 +17,7 @@ below the maximum accepted strand ratio.
 
 ##Usage
 
-CoverageCheck can also be started directly from the command line:
+CoverageCheck can be started directly from the command line:
 
 > *"python CoverageCheck.py regions.bed expected_variants.vcf"*
 
