@@ -101,6 +101,13 @@ def parse_coverage_file_into_dataframe(coverage_file):
 def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samplename = None,
                        trait_cutoff = None, whitelist = None):    
     
+    """
+    Walk through all bases and find contigous regions of bases that fail the coverage/strandbias cutoff
+    Create an output file of these regions
+    If a base an expected variant (recorded in a ExpectedVariants instance ('whitelist'), record the trait to the instance)
+    Return the updated whitelist
+    """
+    
     region = None
     last_gene = None
     last_pos = 0
@@ -214,12 +221,12 @@ def check_bed_filetype(filename):
     
     else: # this is an Illumina manifest file
         
-        logging.error( "Input is not a bed file, but an Illumina manifest file:", filename )
+        logging.error( "Input is not a bed file, but an Illumina manifest file: " + filename )
         
         expected_bed = filename[:-4] + "_plusminus.bed"
                 
         if os.path.exists(expected_bed):
-            logging.info( "Switching to existing bed file:", expected_bed )
+            logging.info( "Switching to existing bed file: " + expected_bed )
             return expected_bed
         
         else:
@@ -228,7 +235,7 @@ def check_bed_filetype(filename):
             import manifest2bed as m2b
             all_out, plusminus = m2b.convert_manifest(filename)
             
-            logging.info( "Switching to newly created bed file:", plusminus )
+            logging.info( "Switching to newly created bed file: " + plusminus )
             return plusminus
 
 def remove_empty_files_from_folder(folder):
@@ -310,7 +317,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
         bedtools_output = target_folder + samplename + "_coverage.tsv"
         
         if not os.path.exists(bedtools_output):
-            logging.info( "Running bedtools coverage for:", bam )
+            logging.info( "Running bedtools coverage for: " + bam )
             run_bedtools(target_folder + bam, output = bedtools_output, bed=bed)
         
         coverage_matrix = parse_coverage_file_into_dataframe(bedtools_output)

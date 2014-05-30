@@ -96,7 +96,8 @@ def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whiteli
     
     plot_no = 0
     
-    plt.figure(figsize=(15, 40))
+    figure_length = len(all_genes)
+    plt.figure(figsize=(15, figure_length))
     
     upper = np.percentile(df[df.dp > 0].dp, 90)
     lower = -np.percentile(df[df.dp > 0].dp, 40)
@@ -176,7 +177,8 @@ def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whiteli
     
     plot_no = 0
     
-    plt.figure(figsize=(15, 40))
+    figure_length = len(all_genes)
+    plt.figure(figsize=(15, figure_length))
     
     upper = np.percentile(df[df.dp > 0].dp, 90)
     lower = -np.percentile(df[df.dp > 0].dp, 40)
@@ -209,7 +211,8 @@ def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whiteli
         if len(gene_exons.exon_no.values) > 0:
             for i in range(1,int(gene_exons.exon_no.max())+1):
                 
-                logging.debug( "Exon %s, %s variants" % (i, whitelist.get_variants_per_exon(gene, i)))
+                if whitelist:
+                    logging.debug( "Exon %s, %s variants" % (i, whitelist.get_variants_per_exon(gene, i)))
                 
                 data = list(pdf[pdf.exon_no == i].dp)
                 mean_x = pdf[pdf.exon_no == i].pos.mean()
@@ -225,21 +228,23 @@ def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whiteli
         if len(xs) > 0:
             
             plt.boxplot(ys, positions=xs)
-                        
-            ######################################################################
-            # create x labels
+            
+            if whitelist:
                     
-            locs = []
-            labels = [] 
-        
-            for i in range(1,int(gene_exons.exon_no.max())+1):
-                locs.append( i )
-                
-                var_count = whitelist.get_variants_per_exon(gene, i)
-                label = "%s.\n(%s)" % (i, var_count)
-                labels.append(label)
-        
-            plt.xticks(locs, labels)
+                ######################################################################
+                # create x labels
+                        
+                locs = []
+                labels = [] 
+            
+                for i in range(1,int(gene_exons.exon_no.max())+1):
+                    locs.append( i )
+                    
+                    var_count = whitelist.get_variants_per_exon(gene, i)
+                    label = "%s.\n(%s)" % (i, var_count)
+                    labels.append(label)
+            
+                plt.xticks(locs, labels)
         
     plt.tight_layout()
     
