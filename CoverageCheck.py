@@ -14,6 +14,7 @@ import seaborn as sns
 import numpy as np
 import pprint
 import logging
+import re
 
 # personal modules from the same folder
 import plot_exon_coverage as plotting
@@ -238,6 +239,41 @@ def check_bed_filetype(filename):
             logging.info( "Switching to newly created bed file: " + plusminus )
             return plusminus
 
+def fix_gene_names_in_bedfile(bed, gene_alias_filename):
+    """
+    Creates a new bedfile that has all genenames changed according to the gene_aliases file
+    Return the name of the new bedfile
+    """
+    
+    logging.info( "Gene Name Aliases detected: " + gene_alias_filename )
+    logging.info( "Fixing gene names in bedfile." )
+    
+    gene_aliases = {}
+    with open(gene_alias_filename) as handle:
+        for row in handle:
+            row = row.strip()
+            old, new = re.split("[\t ]", row) # split the row regardsless of tab or space
+            gene_aliases[old] = new
+    
+    out = open(bed.replace(".bed", "_fixed_genenames.bed"), "w")
+    with open(bed) as handle:
+        for row in handle:
+            f = row.strip().split("\t")
+            amplicon = f[3]
+            gene = amplicon.split("_")[0]
+            new_gene = gene_aliases.get(gene, gene)
+            
+            new_amplicon = amplicon.replace(gene, new_gene)
+            
+            f[3] = new_amplicon
+            result = "\t".join(f)
+            
+            out.write(result + "\n")
+            
+            if amplicon != new_amplicon:
+                logging.debug("Replaced %s with %s" % (amplicon, new_amplicon))
+    out.close()
+
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
         if os.path.getsize(folder + filename) == 0:
@@ -246,7 +282,7 @@ def remove_empty_files_from_folder(folder):
 #####################################################################################################################
 #####################################################################################################################
 
-def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
+def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, gene_alias_filename=None):
 
     remove_empty_files_from_folder(target_folder) # remove empty files that might have been left over from previous runs
     
@@ -276,7 +312,9 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     logging.info( "-" * 100 )
     
     bed = check_bed_filetype(bed)
-            
+    if gene_alias_filename:
+        bed = fix_gene_names_in_bedfile(bed, gene_alias_filename)
+    
     logging.info( "Minimum accepted coverage per base: %sX" % (min_dp) )
     logging.info( "Maximum accepted coverage ratio between strands: %s:1" % (max_strand_ratio) )
     
@@ -344,7 +382,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
         ##############################################################################################
         # plot
         
-        plotting.plot_exon_coverage(bedtools_output, exon_dict = exons_per_gene,
+        plotting.plot_exon_coverage(bedtools_output, exons=exons, exons_per_gene = exons_per_gene,
                                     target_folder = sample_output_folder, whitelist=whitelist)
         logging.info(  "-" * 100 )
         
@@ -361,7 +399,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     if mb_size > 2000:
         logging.error( "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2)) )     
     else:
-        all_sample_plotting.plot_exon_coverage(all_sample_filename, exon_dict = exons_per_gene,
+        all_sample_plotting.plot_exon_coverage(all_sample_filename, exons=exons, exons_per_gene = exons_per_gene,
                                                target_folder = target_folder, whitelist=whitelist)
         
 ##################################################################################
@@ -369,9 +407,13 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
 if __name__ == "__main__":
     bed = sys.argv[1]
     whitelist_filename = sys.argv[2]
+    gene_alias_filename = sys.argv[3]
     
     if whitelist_filename == "None":
         whitelist_filename = None
+        
+    if gene_alias_filename == "None":
+        gene_alias_filename = None
     
     if "/" in bed:
         target_folder = "/".join(bed.split("/")[:-1]) + "/"
@@ -381,7 +423,8 @@ if __name__ == "__main__":
     min_dp = 50
     max_strand_ratio = 5
     
-    run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=whitelist_filename)
+    run(bed, target_folder, min_dp, max_strand_ratio,
+        whitelist_filename=whitelist_filename, gene_alias_filename=gene_alias_filename)
 
     
     

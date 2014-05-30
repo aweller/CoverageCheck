@@ -7,7 +7,7 @@ from IPython.html.widgets import interact
 import os
 import logging
 
-def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whitelist=None):
+def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folder = None, whitelist=None):
     
     sample = filename.split("/")[-1][:-13]
     header = ["chr", "start", "stop", "amplicon", "na", "strand",  "amplicon_pos", "dp"]
@@ -18,27 +18,27 @@ def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whiteli
     rawdf["name"] = rawdf.amplicon 
     rawdf["gene"] = rawdf.apply(lambda x : x["amplicon"].split("_")[0], axis = 1 ) 
     
-    #######################################################################################
-    # parse the complete list of human exons
-    
-    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
-    exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_merged.tsv"
-    
-    header = ["chrom", "exon_start", "exon_stop", "gene", "strand", "exon_no"]
-    exons = pd.read_csv(exon_filename, sep="\t", names=header)
-    exons["gene_upper"] = exons.gene.str.upper()
-    exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
-        
-    exons_per_gene = {}
-    for _, row in exons.iterrows():
-        gene = row["gene"].upper()
-        start, stop = int(row["exon_start"]), int(row["exon_stop"])
-        exon_no = row["exon_no"]
-        
-        if not exons_per_gene.get(gene):
-            exons_per_gene[gene] = []
-            
-        exons_per_gene[gene].append((start, stop, exon_no))
+    ########################################################################################
+    ## parse the complete list of human exons
+    #
+    ##exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_merged.tsv"
+    #
+    #header = ["chrom", "exon_start", "exon_stop", "gene", "strand", "exon_no"]
+    #exons = pd.read_csv(exon_filename, sep="\t", names=header)
+    #exons["gene_upper"] = exons.gene.str.upper()
+    #exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
+    #    
+    #exons_per_gene = {}
+    #for _, row in exons.iterrows():
+    #    gene = row["gene"].upper()
+    #    start, stop = int(row["exon_start"]), int(row["exon_stop"])
+    #    exon_no = row["exon_no"]
+    #    
+    #    if not exons_per_gene.get(gene):
+    #        exons_per_gene[gene] = []
+    #        
+    #    exons_per_gene[gene].append((start, stop, exon_no))
     
     #######################################################################################
     # df: per base

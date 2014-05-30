@@ -3,6 +3,7 @@
 import numpy as np
 import pprint
 import logging
+import sys
 
 #####################################################################################################################
 
@@ -98,13 +99,26 @@ class ExpectedVariants():
         
         self.header_found = False
         self.header_row = []
+        self.input_format = self.determine_input_format(filename)
         
         with open(filename) as handle:
             for row in handle:
                 if row[0] == "#": continue
                 f = row.strip().split("\t")
-                chrom, pos = f[:2]
-
+                
+                gene = None
+                
+                if self.input_format == "noemi":
+                    chrom, pos = f[:2]
+                    gene = f[5].upper()
+                
+                elif self.input_format == "patricia":
+                    if f[4] == "null": # this is a nonsense variant without chrompos
+                        continue
+                    else:
+                        chrom, pos = f[4:6]
+                        gene = f[3].upper()
+                        
                 try:
                     pos = int(pos)
                 except:
@@ -117,7 +131,6 @@ class ExpectedVariants():
                         print "Skipping variant row:  " + row,
                         continue
                 
-                chrom, pos = f[:2]
                 chrompos = chrom + "\t" + pos        
                 
                 self.dict[chrompos] = {}
@@ -128,15 +141,15 @@ class ExpectedVariants():
         
                 ##################################################
                 # find the gene for the variant
-                # this is not necessary as the gene is already in the expected variant file
-                        
-                #self.dict[chrompos]["gene"] = "no_gene"
-                #for [start, stop, candidate_gene] in self.gene_locs[chrom]:
-                #    if start < int(pos) < stop:
-                #        self.dict[chrompos]["gene"] = candidate_gene
-                #        break            
+                # this is not necessary for most input formats as the gene is already in the expected variant file
                 
-                gene = f[5].upper() 
+                if not gene: # try to assign the variant to a gene myself 
+                    self.dict[chrompos]["gene"] = "no_gene"
+                    for [start, stop, candidate_gene] in self.gene_locs[chrom]:
+                        if start < int(pos) < stop:
+                            self.dict[chrompos]["gene"] = candidate_gene
+                            break            
+                                
                 self.dict[chrompos]["gene"] = gene
                 
                 if not self.variants_per_exon.get(gene):               
@@ -169,6 +182,40 @@ class ExpectedVariants():
                 logging.debug( "Exon_No: " + str(exon_no) )
                 
     #####################################################################################################
+        
+    def determine_input_format(self, filename):
+        """
+        Find out in which format the expected variants are provided,
+        i.e. where chrom and pos are and if a gene column exists
+        """
+        
+        input_format = None 
+        
+        with open(filename) as handle:
+            for row in handle:
+                if row[0] == "#": continue
+                f = row.strip().split("\t")
+                
+                if row.startswith("chr"):
+                    #chr15	43027356	CM060011	Congenital dysorythropoietic anaemia type 1		CDAN1		43027356	43027356	-	c.1078T>C                   
+                    input_format = "noemi"
+                    
+                elif f[5].startswith("chr"):
+                    #CR070421	Haemophilia A	DM	F8	chrX	154250939	154250939	-	null
+                    input_format = "patricia"
+                    
+                break
+        
+        if input_format:
+            return input_format
+        
+        else:
+            logging.critical( "-" * 150 )
+            logging.critical( "Can't parse input format for the expected variants." )
+            logging.critical( "Is it defined correctly in CoverageCheckClasses.py?" )
+            logging.critical( "Sorry, aborting CoverageCheck." )
+            sys.exit()
+
         
     def add_coverage(self, chrompos, dp):
         self.dict[chrompos]["dp"] = dp

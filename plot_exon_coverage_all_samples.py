@@ -5,7 +5,7 @@ import seaborn as sns
 import scipy.stats
 from IPython.html.widgets import interact
 
-def plot_exon_coverage(filename,  exon_dict = None, target_folder = "./", whitelist=None):
+def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folder = "./", whitelist=None):
     
     project_name = filename.split("/")[-1]
     
