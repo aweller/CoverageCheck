@@ -7,7 +7,7 @@ from IPython.html.widgets import interact
 import os
 import logging
 
-def plot_exon_coverage(filename, target_folder = None):
+def plot_exon_coverage(filename, exon_dict = None, target_folder = None, whitelist=None):
     
     sample = filename.split("/")[-1][:-13]
     header = ["chr", "start", "stop", "amplicon", "na", "strand",  "amplicon_pos", "dp"]
@@ -19,23 +19,26 @@ def plot_exon_coverage(filename, target_folder = None):
     rawdf["gene"] = rawdf.apply(lambda x : x["amplicon"].split("_")[0], axis = 1 ) 
     
     #######################################################################################
+    # parse the complete list of human exons
     
-    exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
-    header = ["exon_start", "exon_stop", "gene", "exon_no"]
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
+    exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_merged.tsv"
+    
+    header = ["chrom", "exon_start", "exon_stop", "gene", "strand", "exon_no"]
     exons = pd.read_csv(exon_filename, sep="\t", names=header)
     exons["gene_upper"] = exons.gene.str.upper()
     exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
         
-    exon_dict = {}
+    exons_per_gene = {}
     for _, row in exons.iterrows():
         gene = row["gene"].upper()
         start, stop = int(row["exon_start"]), int(row["exon_stop"])
         exon_no = row["exon_no"]
         
-        if not exon_dict.get(gene):
-            exon_dict[gene] = []
+        if not exons_per_gene.get(gene):
+            exons_per_gene[gene] = []
             
-        exon_dict[gene].append((start, stop, exon_no))
+        exons_per_gene[gene].append((start, stop, exon_no))
     
     #######################################################################################
     # df: per base
@@ -61,7 +64,7 @@ def plot_exon_coverage(filename, target_folder = None):
     
         exon_no = 0
         try:
-            for region in exon_dict[gene]:
+            for region in exons_per_gene[gene]:
                 if region[0] < pos < region[1]:
                     exon_no = region[2]
                     break
@@ -134,6 +137,7 @@ def plot_exon_coverage(filename, target_folder = None):
             plt.axhline(0)
             
             ######################################################################
+            # create x labels
             
             locs = []
             labels = [] 
@@ -181,25 +185,32 @@ def plot_exon_coverage(filename, target_folder = None):
         plot_no += 1
         plt.subplot(len(all_genes), 1, plot_no)
         
-        try:
-            plt.ylabel(gene)
-            plt.axhline(0)
-            plt.ylim(lower, upper)
-            
-            ######################################################################
-            
-            gene= gene.upper()
-            gene_exons = exons[(exons.gene_upper == gene)]
-            
-            gene_df = df[(df.gene.str.upper() == gene)]
-            gene_df["dp_capped"] = gene_df.apply(lambda x : upper if x["dp"] > upper else x["dp"], axis=1)
-            
-            pdf = df[(df.gene.str.upper() == gene)].sort(columns = ["pos"]) 
-            
-            xs = []
-            ys = [] 
-            
+        #try:
+        plt.ylabel(gene)
+        plt.axhline(0)
+        plt.ylim(lower, upper)
+        
+        ######################################################################
+        
+        gene= gene.upper()
+        gene_exons = exons[(exons.gene_upper == gene)]
+        
+        gene_df = df[(df.gene.str.upper() == gene)]
+        gene_df["dp_capped"] = gene_df.apply(lambda x : upper if x["dp"] > upper else x["dp"], axis=1)
+        
+        pdf = df[(df.gene.str.upper() == gene)].sort(columns = ["pos"]) 
+        
+        xs = []
+        ys = [] 
+        
+        logging.debug( "-" * 150 )
+        logging.debug( gene )
+
+        if len(gene_exons.exon_no.values) > 0:
             for i in range(1,int(gene_exons.exon_no.max())+1):
+                
+                logging.debug( "Exon %s, %s variants" % (i, whitelist.get_variants_per_exon(gene, i)))
+                
                 data = list(pdf[pdf.exon_no == i].dp)
                 mean_x = pdf[pdf.exon_no == i].pos.mean()
                         
@@ -210,12 +221,25 @@ def plot_exon_coverage(filename, target_folder = None):
                 else:
                     ys.append([0,0,0])
                     xs.append(i)
+        
+        if len(xs) > 0:
             
-            if len(xs) > 0:
-                plt.boxplot(ys, positions=xs)
+            plt.boxplot(ys, positions=xs)
+                        
+            ######################################################################
+            # create x labels
+                    
+            locs = []
+            labels = [] 
+        
+            for i in range(1,int(gene_exons.exon_no.max())+1):
+                locs.append( i )
                 
-        except:
-            pass
+                var_count = whitelist.get_variants_per_exon(gene, i)
+                label = "%s.\n(%s)" % (i, var_count)
+                labels.append(label)
+        
+            plt.xticks(locs, labels)
         
     plt.tight_layout()
     

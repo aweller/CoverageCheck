@@ -23,6 +23,34 @@ import CoverageCheckClasses
 
 #####################################################################################################################
 
+def parse_exons_into_dataframe_and_dict():
+    """
+    Parse a list of all human exons into 2 datastructures:
+    1. exons (pandas df)
+    2. exons_per_gene (dictionary of gene:[start, stop, exon_no])
+    """
+    
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
+    exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_all_genes_merged.tsv"
+
+    header = ["chrom", "exon_start", "exon_stop", "gene", "strand", "exon_no"]
+    exons = pd.read_csv(exon_filename, sep="\t", names=header)
+    exons["gene_upper"] = exons.gene.str.upper()
+    exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
+        
+    exons_per_gene = {}
+    for _, row in exons.iterrows():
+        gene = row["gene"].upper()
+        start, stop = int(row["exon_start"]), int(row["exon_stop"])
+        exon_no = row["exon_no"]
+        
+        if not exons_per_gene.get(gene):
+            exons_per_gene[gene] = []
+            
+        exons_per_gene[gene].append((start, stop, exon_no))
+        
+    return exons, exons_per_gene
+
 def parse_coverage_file_into_dataframe(coverage_file):
     """
     Parses the coverage file, transforms into a per-base matrix and returns a pandas DF
@@ -222,7 +250,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     print "Log messages printed to %s" % (logging_filename)
     
     # set up logging to file
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                   format='%(asctime)s %(name)-8s %(levelname)-8s %(message)s',
                   datefmt='%d-%m-%y %H:%M',
                   filename=logging_filename)
@@ -249,6 +277,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]    
     logging.info( "Target folder: %s" % target_folder )
     
+    exons, exons_per_gene = parse_exons_into_dataframe_and_dict()
 
     if whitelist_filename:
         variant_no = len([x for x in open(whitelist_filename).readlines() if x[0] != "#"])
@@ -292,7 +321,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
         whitelist = None
         if whitelist_filename:
             whitelist = CoverageCheckClasses.ExpectedVariants(whitelist_filename, samplename=samplename, folder=sample_output_folder,
-                                        dp_cutoff = min_dp, strandbias = max_strand_ratio)
+                                        dp_cutoff = min_dp, strandbias = max_strand_ratio, exon_dict = exons_per_gene)
         
         ##############################################################################################
         # run
@@ -308,7 +337,8 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
         ##############################################################################################
         # plot
         
-        plotting.plot_exon_coverage(bedtools_output, target_folder = sample_output_folder)
+        plotting.plot_exon_coverage(bedtools_output, exon_dict = exons_per_gene,
+                                    target_folder = sample_output_folder, whitelist=whitelist)
         logging.info(  "-" * 100 )
         
     ##############################################################################################
@@ -324,7 +354,8 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None):
     if mb_size > 2000:
         logging.error( "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2)) )     
     else:
-        all_sample_plotting.plot_exon_coverage(all_sample_filename, target_folder = target_folder)
+        all_sample_plotting.plot_exon_coverage(all_sample_filename, exon_dict = exons_per_gene,
+                                               target_folder = target_folder, whitelist=whitelist)
         
 ##################################################################################
 

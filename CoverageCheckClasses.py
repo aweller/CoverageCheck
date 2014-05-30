@@ -1,6 +1,8 @@
 # contains the Classes for CoverageCheck
 
 import numpy as np
+import pprint
+import logging
 
 #####################################################################################################################
 
@@ -57,7 +59,7 @@ class ExpectedVariants():
     Each instance corresponds to a list of expected variants
     """
     
-    def __init__(self, filename, folder = "./", dp_cutoff=None, strandbias=None, samplename=None):
+    def __init__(self, filename, folder = "./", dp_cutoff=None, strandbias=None, samplename=None, exon_dict = None):
         self.dict = {}
         self.chromposes = []
         self.filename = filename
@@ -66,10 +68,13 @@ class ExpectedVariants():
         self.min_dp = dp_cutoff
         self.max_strand_ratio = strandbias
         
+        self.exon_dict = exon_dict
+        
         self.gene_locs = {}
         self.gene_variants = {}
         self.gene_variants["no_gene"] = {"total":0, "discoverable":0}
-
+        self.variants_per_exon = {} # records the variants per exon to be plotted later
+        
         self.all_genes = []
         
         ###########################################################
@@ -79,13 +84,15 @@ class ExpectedVariants():
             for row in handle:
                 f = row.strip().split("\t")
                 chrom, start, stop, gene = f[0], int(f[1]), int(f[2]), f[3]
+                gene = gene.upper()
                 if not self.gene_locs.get(chrom):
                     self.gene_locs[chrom] = []
+                    self.variants_per_exon[gene] = {}
+                    self.gene_variants[gene] = {"total":0, "discoverable":0}
+                    self.all_genes.append(gene)
                 
                 self.gene_locs[chrom].append([start, stop, gene])
-                self.gene_variants[gene] = {"total":0, "discoverable":0}
-                self.all_genes.append(gene)
-        
+                
         ###########################################################
         # add the variants
         
@@ -120,12 +127,48 @@ class ExpectedVariants():
                 self.chromposes.append(chrompos)
         
                 ##################################################
+                # find the gene for the variant
+                # this is not necessary as the gene is already in the expected variant file
+                        
+                #self.dict[chrompos]["gene"] = "no_gene"
+                #for [start, stop, candidate_gene] in self.gene_locs[chrom]:
+                #    if start < int(pos) < stop:
+                #        self.dict[chrompos]["gene"] = candidate_gene
+                #        break            
                 
-                self.dict[chrompos]["gene"] = "no_gene"
-                for [start, stop, gene] in self.gene_locs[chrom]:
-                    if start < int(pos) < stop:
-                        self.dict[chrompos]["gene"] = gene
-                        break            
+                gene = f[5].upper() 
+                self.dict[chrompos]["gene"] = gene
+                
+                if not self.variants_per_exon.get(gene):               
+                    self.variants_per_exon[gene] = {}
+                    self.gene_variants[gene] = {"total":0, "discoverable":0}
+                    self.all_genes.append(gene)
+        
+                ##################################################
+                # find the exon_no for the variant
+                # record it into the dict[chrompos] of the variant
+                # but also in the variants_per_exon[gene]
+                
+                exon_no = 0 
+                self.dict[chrompos]["exon_no"] = 0
+                
+                logging.debug( "-" * 150 )
+                logging.debug( row, )
+                logging.debug( "Gene: " + gene )
+                
+                for region in self.exon_dict.get(gene, []):
+                    if region[0] < int(pos) <  region[1]:
+                        exon_no = region[2]
+                        self.dict[chrompos]["exon_no"] = exon_no
+                        
+                if not self.variants_per_exon[gene].get(exon_no):
+                    self.variants_per_exon[gene][exon_no] = 1
+                else:
+                    self.variants_per_exon[gene][exon_no] += 1
+                
+                logging.debug( "Exon_No: " + str(exon_no) )
+                
+    #####################################################################################################
         
     def add_coverage(self, chrompos, dp):
         self.dict[chrompos]["dp"] = dp
@@ -133,6 +176,12 @@ class ExpectedVariants():
     def add_strand_ratio(self, chrompos, strand_ratio):
         self.dict[chrompos]["sb"] = strand_ratio        
     
+    def get_variants_per_exon(self, gene, exon_no):
+        all_exon_counts = self.variants_per_exon.get(gene, {})    
+        exon_count = all_exon_counts.get(exon_no, 0)
+        
+        return exon_count
+        
     def print_output(self):
         
         outname = self.folder + self.sample + "_expected_variant_coverage.tsv"
