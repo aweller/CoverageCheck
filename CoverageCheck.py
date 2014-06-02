@@ -185,10 +185,12 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
     pass_percent = 100 * round( good_bases / float(total_bases), 3)
     
     if trait == "strandbias":
+        sampleinfo.add_strandbias(sample, [pass_percent, good_bases, total_bases])
         logging.info( "%s percent (%s/%s) of positions in %s have a strand bias below the threshold (%s:1)."
                      % (pass_percent, good_bases, total_bases, sample, trait_cutoff) )
         
     elif trait == "coverage":
+        sampleinfo.add_coverage(sample, [pass_percent, good_bases, total_bases])
         logging.info( "%s percent (%s/%s) of positions in %s have at least the minimum coverage of %sX."
                      % (pass_percent, good_bases, total_bases, sample, trait_cutoff) )
     
@@ -245,34 +247,42 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
     Return the name of the new bedfile
     """
     
+    fixed_bed_name = bed.replace(".bed", "_fixed_genenames.bed")
+    
     logging.info( "Gene Name Aliases detected: " + gene_alias_filename )
-    logging.info( "Fixing gene names in bedfile." )
+        
+    if os.path.exists(fixed_bed_name):
+            logging.info( "Switching to existing fixed bed file: " + fixed_bed_name )
+            return fixed_bed_name
+    else:
+        logging.info( "Fixing gene names in bedfile." )
     
-    gene_aliases = {}
-    with open(gene_alias_filename) as handle:
-        for row in handle:
-            row = row.strip()
-            old, new = re.split("[\t ]", row) # split the row regardsless of tab or space
-            gene_aliases[old] = new
-    
-    out = open(bed.replace(".bed", "_fixed_genenames.bed"), "w")
-    with open(bed) as handle:
-        for row in handle:
-            f = row.strip().split("\t")
-            amplicon = f[3]
-            gene = amplicon.split("_")[0]
-            new_gene = gene_aliases.get(gene, gene)
-            
-            new_amplicon = amplicon.replace(gene, new_gene)
-            
-            f[3] = new_amplicon
-            result = "\t".join(f)
-            
-            out.write(result + "\n")
-            
-            if amplicon != new_amplicon:
-                logging.debug("Replaced %s with %s" % (amplicon, new_amplicon))
-    out.close()
+        gene_aliases = {}
+        with open(gene_alias_filename) as handle:
+            for row in handle:
+                row = row.strip()
+                old, new = re.split("[\t ]", row) # split the row regardsless of tab or space
+                gene_aliases[old] = new
+        
+        out = open(fixed_bed_name, "w")
+        with open(bed) as handle:
+            for row in handle:
+                f = row.strip().split("\t")
+                amplicon = f[3]
+                gene = amplicon.split("_")[0]
+                new_gene = gene_aliases.get(gene, gene)
+                
+                new_amplicon = amplicon.replace(gene, new_gene)
+                
+                f[3] = new_amplicon
+                result = "\t".join(f)
+                
+                out.write(result + "\n")
+                
+                if amplicon != new_amplicon:
+                    logging.debug("Replaced %s with %s" % (amplicon, new_amplicon))
+        out.close()
+        return 
 
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
@@ -282,7 +292,7 @@ def remove_empty_files_from_folder(folder):
 #####################################################################################################################
 #####################################################################################################################
 
-def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, gene_alias_filename=None):
+def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, gene_alias_filename=None, target_bams_filename=None):
 
     remove_empty_files_from_folder(target_folder) # remove empty files that might have been left over from previous runs
     
@@ -305,25 +315,25 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     # add the handler to the root logger
     logging.getLogger('').addHandler(console)
+
+    logging.info( "-" * 100 )
+    logging.info( "Minimum accepted coverage per base: %sX" % (min_dp) )
+    logging.info( "Maximum accepted coverage ratio between strands: %s:1" % (max_strand_ratio) )
         
     #####################################################
     # setup variables and report information 
     
-    logging.info( "-" * 100 )
+    exons, exons_per_gene = parse_exons_into_dataframe_and_dict()
     
     bed = check_bed_filetype(bed)
     if gene_alias_filename:
         bed = fix_gene_names_in_bedfile(bed, gene_alias_filename)
+        
+    # setup the class that collects stats on each sample    
+    global sampleinfo
+    sampleinfo = CoverageCheckClasses.SampleInfo()
     
-    logging.info( "Minimum accepted coverage per base: %sX" % (min_dp) )
-    logging.info( "Maximum accepted coverage ratio between strands: %s:1" % (max_strand_ratio) )
-    
-    target_folder = target_folder + "/" # just to be on the safe side    
-    bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]    
-    logging.info( "Target folder: %s" % target_folder )
-    
-    exons, exons_per_gene = parse_exons_into_dataframe_and_dict()
-
+    # parse list of expected variants
     if whitelist_filename:
         variant_no = len([x for x in open(whitelist_filename).readlines() if x[0] != "#"])
         logging.info( "Found %s expected variants to check in %s" % (variant_no, whitelist_filename) )
@@ -331,11 +341,21 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         if variant_no == 0:
             logging.critical( "ERROR: expected variant file doesn't contain variants." )
             sys.exit()
-        
     else:
         logging.info( "No expected variants specified." )
+
+    # parse list of allowed bams
+    target_folder = target_folder + "/" # just to be on the safe side    
+    bams = [x for x in os.listdir(target_folder) if x.endswith(".bam")]    
     
-    logging.info( "Found %s bams to process." % len(bams) )
+    logging.info( "Found %s bams in the target folder %s" % (len(bams), target_folder))    
+    if target_bams_filename:
+        target_bams = [x.strip() for x in open(target_folder + target_bams_filename).readlines()]
+        target_bams = [x+".bam" for x in target_bams if not x.endswith(".bam")]
+        logging.info( "Parsed list of %s allowed bams in %s" % (len(target_bams), target_bams_filename) )
+        bams = [x for x in bams if x in target_bams]
+        logging.info( "%s bams left to process in the target folder." % len(bams) )    
+
     logging.info( "-" * 100 )
 
     ##############################################################################################
@@ -345,6 +365,8 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         
         samplename = bam.split(".")[0]
         sample_output_folder = "%s/%s_results/" % (target_folder, samplename)
+        
+        sampleinfo.add_sample(samplename)
         
         if not os.path.exists(sample_output_folder):
             os.makedirs(sample_output_folder)
@@ -390,6 +412,8 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     # create summaries across all samples
     # this has to happen after the individual bam treatment because it assumes that coverage files for each bam are present
     
+    sampleinfo.print_output()
+    
     all_sample_filename = "all_samples.tsv"
     UniteCoverage.unite(all_sample_filename, target_folder = target_folder)
     
@@ -408,12 +432,16 @@ if __name__ == "__main__":
     bed = sys.argv[1]
     whitelist_filename = sys.argv[2]
     gene_alias_filename = sys.argv[3]
+    target_bams_filename = sys.argv[4]
     
     if whitelist_filename == "None":
         whitelist_filename = None
         
     if gene_alias_filename == "None":
         gene_alias_filename = None
+
+    if target_bams_filename == "None":
+        target_bams_filename = None
     
     if "/" in bed:
         target_folder = "/".join(bed.split("/")[:-1]) + "/"
@@ -424,7 +452,7 @@ if __name__ == "__main__":
     max_strand_ratio = 5
     
     run(bed, target_folder, min_dp, max_strand_ratio,
-        whitelist_filename=whitelist_filename, gene_alias_filename=gene_alias_filename)
+        whitelist_filename=whitelist_filename, gene_alias_filename=gene_alias_filename, target_bams_filename=target_bams_filename)
 
     
     

@@ -56,10 +56,24 @@ def fetch_whitelist():
     whitelist.set(selection)
     args["whitelist"] = selection  
 
+def fetch_aliases():
+    global whitelist
+    selection = askopenfilename(initialdir=bamfolder.get())
+    aliases.set(selection)
+    args["aliases"] = selection  
+
+def fetch_allowed_bams():
+    global allowed_bams
+    selection = askopenfilename(initialdir=bamfolder.get())
+    allowed_bams.set(selection)
+    args["allowed_bams"] = selection 
+
 def run():
     bed = bedfile.get()
     target_folder = bamfolder.get()
     whitelist_file = whitelist.get()
+    allowed_bams_file = allowed_bams.get()
+    aliases_file = aliases.get()
     min_dp_value = int(min_dp.get())
     max_strand_ratio_value = int(max_strand_ratio.get())
     #min_dp = int(ents[0][1].get())
@@ -88,7 +102,7 @@ def run():
       pass
     else:
       root.destroy()
-      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist=whitelist_file)
+      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist_filename=whitelist_file, allowed_bams=allowed_bams_file)
     
 if __name__ == '__main__':
   root = Tk()
@@ -167,35 +181,74 @@ if __name__ == '__main__':
   row.pack(side=TOP, fill=X, padx=5, pady=5)
   fixed_label.pack(side=LEFT)
   var_label.pack(side=RIGHT, expand=YES)
-
-  ##########################################
-  # Show an error message
   
-  error_msg = StringVar()
-  error_msg.set("Please select your parameters")
+  ##########################################
+  # Show the selected allowed bams
+
+  allowed_bams = StringVar()
+  #bedfile.set('Not selected')  
+  allowed_bams.set(None)
   
   row = Frame(root)
-  row.pack(side=TOP, fill=X, padx=5, pady=50)
-  var_label = Label(row, textvariable = error_msg)
+  fixed_label = Label(row, width=15, text="Allowed bams", anchor='w')
+  var_label = Label(row, textvariable = allowed_bams)
+  
+  row.pack(side=TOP, fill=X, padx=5, pady=5)
+  fixed_label.pack(side=LEFT)
   var_label.pack(side=RIGHT, expand=YES)
+
+  ##########################################
+  # Show the selected gene name aliases
+
+  aliases = StringVar()
+  #bedfile.set('Not selected')  
+  aliases.set(None)
+  
+  row = Frame(root)
+  fixed_label = Label(row, width=15, text="Gene name aliases", anchor='w')
+  var_label = Label(row, textvariable = aliases)
+  
+  row.pack(side=TOP, fill=X, padx=5, pady=5)
+  fixed_label.pack(side=LEFT)
+  var_label.pack(side=RIGHT, expand=YES)
+
+  ###########################################
+  ## Show an error message
+  #
+  #error_msg = StringVar()
+  #error_msg.set("Please select your parameters")
+  #
+  #row = Frame(root)
+  #row.pack(side=TOP, fill=X, padx=5, pady=50)
+  #var_label = Label(row, textvariable = error_msg)
+  #var_label.pack(side=RIGHT, expand=YES)
   
   ###########################################
   # Create the buttons
   
-  b1 = Button(root, text='Select bamfolder',command=fetch_bamfolder)
+  b1 = Button(root, text='Select bamfolder\n (required)',command=fetch_bamfolder)
   b1.pack(side=LEFT, padx=5, pady=5)
   
-  b2 = Button(root, text='Select region file', command=fetch_bedfile)
+  b2 = Button(root, text='Select region file\n (Manifest or bed, required)', command=fetch_bedfile)
   b2.pack(side=LEFT, padx=5, pady=5)
 
-  b3 = Button(root, text='Select expected variants', command=fetch_whitelist)
-  b3.pack(side=LEFT, padx=5, pady=5)
-  
-  b4 = Button(root, text='Quit', command=root.quit)
+  b3 = Button(root, text='Select expected variants\n (optional)', command=fetch_whitelist)
+  b3.pack(side=RIGHT, padx=5, pady=5)
+
+  b4 = Button(root, text='Select allowed bams\n (one sample per row, optional)', command=fetch_allowed_bams)
   b4.pack(side=RIGHT, padx=5, pady=5)
+
+  b7 = Button(root, text='Select gene name aliases\n (each row: [oldname, newname], optional)', command=fetch_allowed_bams)
+  b7.pack(side=RIGHT, padx=5, pady=5)
   
-  b5 = Button(root, text='Start CoverageCheck',command=run)
+  row = Frame(root)
+  row.pack(side=TOP, fill=X, padx=5, pady=50)
+  
+  b5 = Button(root, text='Quit', command=root.quit)
   b5.pack(side=RIGHT, padx=5, pady=5)
+  
+  b6 = Button(root, text='Start CoverageCheck',command=run)
+  b6.pack(side=LEFT, padx=5, pady=5)
   
   ###########################################
   

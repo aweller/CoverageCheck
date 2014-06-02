@@ -55,6 +55,40 @@ class BadRegion():
 
 #####################################################################################################################
 
+class SampleInfo():
+    
+    """
+    Each instance collects information on all samples to be printed into a sample output file
+    """
+    
+    def __init__(self):
+        self.dict = {}
+        
+    def add_sample(self, samplename):
+        self.dict[samplename] = {}
+        logging.debug( "Added %s to the sampleinfos." % samplename )
+
+    def add_strandbias(self, sample, infos):
+        self.dict[sample]["strandbias"] = infos
+        
+    def add_coverage(self, sample, infos):
+        self.dict[sample]["coverage"] = infos
+
+    def print_output(self):
+        out = open("sample_stats.tsv", "w")
+        
+        header = "sample coverage_pass_ratio good_bases_coverage total_bases_coverage strandbias_pass_ratio good_bases_strandbias total_bases_strandbias"
+        out.write("\t".join(header.split()) + "\n")
+        
+        for sample, infos in self.dict.iteritems():
+            output = [sample, ]
+            output.extend(infos["strandbias"])
+            output.extend(infos["coverage"])
+            out.write("\t".join([str(x) for x in output]) + "\n")
+        out.close()
+
+#####################################################################################################################
+
 class ExpectedVariants():
     """
     Each instance corresponds to a list of expected variants
@@ -131,10 +165,10 @@ class ExpectedVariants():
                         print "Skipping variant row:  " + row,
                         continue
                 
-                chrompos = chrom + "\t" + pos        
+                chrompos = chrom + "\t" + str(pos)        
                 
                 self.dict[chrompos] = {}
-                self.dict[chrompos]["row"] = str(row)[:-1]        
+                self.dict[chrompos]["row"] = str(row.strip())      
                 self.dict[chrompos]["dp"] = 0
                 self.dict[chrompos]["sb"] = None        
                 self.chromposes.append(chrompos)
@@ -193,17 +227,19 @@ class ExpectedVariants():
         
         with open(filename) as handle:
             for row in handle:
-                if row[0] == "#": continue
+                if row[0] == "#" or "chromosome" in row: continue
                 f = row.strip().split("\t")
                 
+                logging.debug( "Expected variants input check: " + str(f) )
+                        
                 if row.startswith("chr"):
                     #chr15	43027356	CM060011	Congenital dysorythropoietic anaemia type 1		CDAN1		43027356	43027356	-	c.1078T>C                   
                     input_format = "noemi"
                     
-                elif f[5].startswith("chr"):
+                elif f[4].startswith("chr") or f[4] == "null":
                     #CR070421	Haemophilia A	DM	F8	chrX	154250939	154250939	-	null
                     input_format = "patricia"
-                    
+                        
                 break
         
         if input_format:
@@ -212,6 +248,7 @@ class ExpectedVariants():
         else:
             logging.critical( "-" * 150 )
             logging.critical( "Can't parse input format for the expected variants." )
+            logging.critical( str(f) )
             logging.critical( "Is it defined correctly in CoverageCheckClasses.py?" )
             logging.critical( "Sorry, aborting CoverageCheck." )
             sys.exit()

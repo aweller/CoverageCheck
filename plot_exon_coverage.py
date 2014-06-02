@@ -158,7 +158,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
             plt.xticks(locs, labels)
         
         except:
-            logging.warning( "Gene %s in sample %s is not in the exon list, skipping." % (gene, sample))
+            logging.warning( "Gene %s in sample %s is not plotted because it's not found in the exon list." % (gene, sample))
             
             
     plt.tight_layout()
