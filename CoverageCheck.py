@@ -325,9 +325,12 @@ def remove_empty_files_from_folder(folder):
 
 def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, gene_alias_filename=None, target_bams_filename=None):
 
-    for argument in [whitelist_filename, gene_alias_filename, target_bams_filename]:
-        if argument == "None":
-            argument = None
+    if whitelist_filename == "None":
+        whitelist_filename = None
+    if gene_alias_filename == "None":
+        gene_alias_filename = None
+    if target_bams_filename == "None":
+        target_bams_filename = None
 
     remove_empty_files_from_folder(target_folder) # remove empty files that might have been left over from previous runs
     
