@@ -318,7 +318,7 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
         if os.path.getsize(folder +"/"+ filename) == 0:
-            os.remove(folder + filename)
+            os.remove(folder +"/"+ filename)
 
 #####################################################################################################################
 #####################################################################################################################
