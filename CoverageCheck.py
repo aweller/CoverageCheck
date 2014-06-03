@@ -22,9 +22,13 @@ import plot_exon_coverage_all_samples as all_sample_plotting
 import unite_coverage_files as UniteCoverage
 import CoverageCheckClasses
 
+#todo
+# - fix capitalization error in plots
+# - exclude exons without amplicon
+
 #####################################################################################################################
 
-def parse_exons_into_dataframe_and_dict():
+def parse_exons_into_dataframe_and_dict(exon_filename):
     """
     Parse a list of all human exons into 2 datastructures:
     1. exons (pandas df)
@@ -32,9 +36,9 @@ def parse_exons_into_dataframe_and_dict():
     """
     
     #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
-    exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_all_genes_merged.tsv"
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_all_genes_merged.tsv"
 
-    header = ["chrom", "exon_start", "exon_stop", "gene", "strand", "exon_no"]
+    header = ["chrom", "exon_start", "exon_stop", "gene", "exon_no", "strand"]
     exons = pd.read_csv(exon_filename, sep="\t", names=header)
     exons["gene_upper"] = exons.gene.str.upper()
     exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
@@ -198,10 +202,35 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
     
 #####################################################################################################################
 
-def run_bedtools(bam, output, bed = None):
+def run_bedtools_coverage(bam, output, bed = None):
+    """ Run bedtools coverage to get the per-base coverage in the target bam. """
+    
     bedtools_cmd = "bedtools coverage -s -d -abam %s -b %s > %s" % (bam, bed, output)
     logging.debug( bedtools_cmd )
-    subprocess.call(bedtools_cmd, shell=True)
+    output_code = subprocess.call(bedtools_cmd, shell=True)
+    
+    if output_code != 0:
+        logging.critical( "Bedtools coverage run error." )
+        logging.critical( bedtools_cmd )
+        logging.critical( "Sorry, aborting..." )
+        sys.exit()
+
+def run_bedtools_intersect(bed):
+    """ Run bedtools intersect to reduce the exon file to the exons with an amplicon overlap. """
+    
+    output = bed.replace(".bed", "_covered_exon_locations.bed") 
+    
+    bedtools_cmd = "intersectBed -u -a ../../scripts/HumanExons_Ensembl_v75_merged.bed -b %s > %s" % (bed, output)
+    logging.debug( bedtools_cmd )
+    output_code = subprocess.call(bedtools_cmd, shell=True)
+    
+    if output_code != 0:
+        logging.critical( "Bedtools intersect run error." )
+        logging.critical( bedtools_cmd )
+        logging.critical( "Sorry, aborting..." )
+        sys.exit()
+        
+    return output
 
 def check_bed_filetype(filename):
     """
@@ -217,9 +246,9 @@ def check_bed_filetype(filename):
             return filename
         
         else:
-            logging.error( "Error in input bed file:", filename )
-            logging.error( "Not all rows contain 6 fields as is expected." )
-            logging.error( "Sorry, aborting..." )
+            logging.critical( "Error in input bed file:", filename )
+            logging.critical( "Not all rows contain 6 fields as is expected." )
+            logging.critical( "Sorry, aborting..." )
             sys.exit()
     
     else: # this is an Illumina manifest file
@@ -286,7 +315,7 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
 
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
-        if os.path.getsize(folder + filename) == 0:
+        if os.path.getsize(folder +"/"+ filename) == 0:
             os.remove(folder + filename)
 
 #####################################################################################################################
@@ -322,12 +351,14 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         
     #####################################################
     # setup variables and report information 
-    
-    exons, exons_per_gene = parse_exons_into_dataframe_and_dict()
-    
+     
     bed = check_bed_filetype(bed)
     if gene_alias_filename:
         bed = fix_gene_names_in_bedfile(bed, gene_alias_filename)
+    
+    exon_filename = run_bedtools_intersect(bed)
+    exons, exons_per_gene = parse_exons_into_dataframe_and_dict(exon_filename)
+    #pprint.pprint(exons)
         
     # setup the class that collects stats on each sample    
     global sampleinfo
@@ -378,7 +409,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         
         if not os.path.exists(bedtools_output):
             logging.info( "Running bedtools coverage for: " + bam )
-            run_bedtools(target_folder + bam, output = bedtools_output, bed=bed)
+            run_bedtools_coverage(target_folder + bam, output = bedtools_output, bed=bed)
         
         coverage_matrix = parse_coverage_file_into_dataframe(bedtools_output)
         

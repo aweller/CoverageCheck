@@ -5,6 +5,8 @@
 #
 # and merges overlapping exons
 # also adds a column with the no of the exon within the gene
+#
+# returns output in BED format
 
 class Region():
     
@@ -34,7 +36,7 @@ class Region():
         self.region_start = self.first_start 
         self.region_stop = self.stop
         
-        output = [self.chrom, self.region_start, self.region_stop, self.gene, self.strand, exon_count]
+        output = [self.chrom, self.region_start, self.region_stop, self.gene, exon_count, self.strand]
         
         return output
 
@@ -61,7 +63,7 @@ with open(infile) as handle:
         chrom, start, stop, strand, gene = f
 
         start, stop, gene = int(f[1]), int(f[2]), f[4]
-        
+                
         if not strand_dict.get(gene):
             strand_dict[gene] = strand 
         
@@ -95,7 +97,7 @@ with open(infile) as handle:
 strand_names = {"-1":"-", "1":"+"}
 
 for row in output_rows:
-    chrom, region_start, region_stop, gene, strand, exon_count = row
+    chrom, region_start, region_stop, gene, exon_count, strand = row
     count_range = range(1, exon_count_per_gene[gene]+1)
     
     if strand_dict[gene] == "1":    # plus strand, exon count is ok
@@ -103,12 +105,13 @@ for row in output_rows:
     
     else: # minus strand, exon count needs to be reversed
         reverse_exon_count = count_range[-exon_count]
-        row[-1] = reverse_exon_count 
+        exon_count = reverse_exon_count 
     
-    row[0] = "chr" + row[0]
-    row[-2] = strand_names[strand]
+    chrom = "chr" + row[0]
+    strand = strand_names[strand]
     
-    print "\t".join([str(x) for x in row])
+    output = [chrom, region_start, region_stop, gene, exon_count, strand]
+    print "\t".join([str(x) for x in output])
 
         
 

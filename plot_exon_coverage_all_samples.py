@@ -14,7 +14,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     df["pos"] = df.start +df.amplicon_pos
     df["chrompos"] = df.apply(lambda x : "_".join([str(x["chr"]), str(x["pos"]) ]), axis = 1 ) 
     df["name"] = df.amplicon 
-    df["gene"] = df.apply(lambda x : x["amplicon"].split("_")[0], axis = 1 ) 
+    df["gene"] = df.apply(lambda x : x["amplicon"].split("_")[0].upper(), axis = 1 ) 
     
     ###################################################################################################
     #
@@ -25,14 +25,6 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     #
     #exons["gene_upper"] = exons.gene.str.upper()
     #exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
-    #
-    ###################################################################################################
-    
-    exon_summary = pd.DataFrame(dict(mean_dp = df.dp.groupby(df.gene).mean().round().astype(int), median_dp = df.dp.groupby(df.gene).median())).reset_index()
-    title = "all samples exon summary"
-    exon_summary.to_csv(target_folder + project_name + "_" + title.replace(" ", "_")+".tsv", sep = "\t", index=False)
-    
-    ###################################################################################################
     #
     #exons_per_gene = {}
     #
@@ -46,6 +38,9 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     #        
     #    exons_per_gene[gene].append((start, stop, exon_no))
     
+    exon_summary = pd.DataFrame(dict(mean_dp = df.dp.groupby(df.gene).mean().round().astype(int), median_dp = df.dp.groupby(df.gene).median())).reset_index()
+    title = "all samples exon summary"
+    exon_summary.to_csv(target_folder + project_name + "_" + title.replace(" ", "_")+".tsv", sep = "\t", index=False)    
     
     def find_matching_exon_from_dict(row):    
         gene = row["gene"]
@@ -111,20 +106,47 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
         ys = [] 
         wids = []
     
-        for i in range(1,int(gene_df.exon_no.max())+1):
-    
-            data = list(gene_df[gene_df.exon_no == i].dp.groupby(gene_df.sample).mean())
-            mean_x = gene_df[gene_df.exon_no == i].pos.mean()
-    
-            if data and mean_x:
-                #print gene, i, np.mean(data[0]), mean_x
-                ys.append(data)
-                xs.append(i)
-    
-            else:
-                ys.append([0,0.1,0])
-                xs.append(i)
-    
+        #for i in range(1,int(gene_df.exon_no.max())+1):
+        #
+        #    data = list(gene_df[gene_df.exon_no == i].dp.groupby(gene_df.sample).mean())
+        #    mean_x = gene_df[gene_df.exon_no == i].pos.mean()
+        #
+        #    if data and mean_x:
+        #        #print gene, i, np.mean(data[0]), mean_x
+        #        ys.append(data)
+        #        xs.append(i)
+        #
+        #    else:
+        #        ys.append([0,0.1,0])
+        #        xs.append(i)
+        #        
+        #    if gene == "HFE2" and i == 3:
+        #        print data
+        #        print np.mean(data), mean_x
+        
+        if len(gene_exons.exon_no.values) > 0:
+            for i in range(1,int(gene_df.exon_no.max())+1):
+                if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+                    
+                    data = list(gene_df[gene_df.exon_no == i].dp.groupby(gene_df.sample).mean())
+                    mean_x = gene_df[gene_df.exon_no == i].pos.mean()
+                            
+                    if data and mean_x:
+                        #print i, np.mean(data[0]), mean_x
+                        ys.append(data)
+                        xs.append(i)
+                    else:
+                        ys.append([0,0,0])
+                        xs.append(i)
+
+                    
+                else: # empty exon that can't have coverage
+                    midlevel = lower + (upper-lower)/2
+                    plt.text(i, midlevel, "X", fontsize=16)
+                    
+                    ys.append([0,0,0])
+                    xs.append(i)
+        
         if len(xs) + len(ys) > 1:
             plt.boxplot(ys, positions=xs)
             
@@ -135,14 +157,28 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
                         
                 locs = []
                 labels = [] 
-            
+                
+                covered_exon_count = 0
                 for i in range(1,int(gene_exons.exon_no.max())+1):
-                    locs.append( i )
+                    #locs.append( i )
+                    #
+                    #var_count = whitelist.get_variants_per_exon(gene, i)
+                    #label = "%s.\n(%s)" % (i, var_count)
+                    #labels.append(label)
+                
                     
-                    var_count = whitelist.get_variants_per_exon(gene, i)
-                    label = "%s.\n(%s)" % (i, var_count)
-                    labels.append(label)
-            
+                    if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+                        covered_exon_count += 1
+                        locs.append( i )
+                        
+                        var_count = whitelist.get_variants_per_exon(gene, i)
+                        label = "%s.\n(%s)" % (covered_exon_count, var_count)
+                        labels.append(label)
+                    else: # empty exon that can't have coverage
+                        locs.append( i )
+                        label = ""
+                        labels.append(label)
+                
                 plt.xticks(locs, labels)
             
         ######################################################################

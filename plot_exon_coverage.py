@@ -16,7 +16,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     rawdf["pos"] = rawdf.start +rawdf.amplicon_pos
     rawdf["chrompos"] = rawdf.apply(lambda x : "_".join([str(x["chr"]), str(x["pos"]) ]), axis = 1 ) 
     rawdf["name"] = rawdf.amplicon 
-    rawdf["gene"] = rawdf.apply(lambda x : x["amplicon"].split("_")[0], axis = 1 ) 
+    rawdf["gene"] = rawdf.apply(lambda x : x["amplicon"].split("_")[0].upper(), axis = 1 ) 
     
     ########################################################################################
     ## parse the complete list of human exons
@@ -102,7 +102,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     upper = np.percentile(df[df.dp > 0].dp, 90)
     lower = -np.percentile(df[df.dp > 0].dp, 40)
     plt.ylim(lower, upper)
-    
+        
     for gene in all_genes:
         plot_no += 1
         plt.subplot(len(all_genes), 1, plot_no)
@@ -143,22 +143,25 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
             locs = []
             labels = [] 
             
-            for i in range(1,int(gene_exons.exon_no.max())+1):
-                start = gene_exons[gene_exons.exon_no == i].exon_start.min()
-                stop = gene_exons[gene_exons.exon_no == i].exon_stop.max()
-                
-                locs.append( np.mean([start, stop]))
-                if i % 2 == 0:
-                    label = "\n" + str(i)
-                else:
-                    label = str(i) + "\n"
-                
-                labels.append(label)
+            for i in range(1,int(gene_exons.exon_no.max())+1):                
+                if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+                    start = gene_exons[gene_exons.exon_no == i].exon_start.min()
+                    stop = gene_exons[gene_exons.exon_no == i].exon_stop.max()
+                    
+                    locs.append( np.mean([start, stop]))
+                    
+                    label = str(i)
+                    #if i % 2 == 0:
+                    #    label = "\n" + str(i)
+                    #else:
+                    #    label = str(i) + "\n"
+                    
+                    labels.append(label)
                 
             plt.xticks(locs, labels)
         
         except:
-            logging.warning( "Gene %s in sample %s is not plotted because it's not found in the exon list." % (gene, sample))
+            logging.warning( "Gene %s in sample %s is not plotted due to an error. Is it in the exon list?" % (gene, sample))
             
             
     plt.tight_layout()
@@ -210,18 +213,27 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
 
         if len(gene_exons.exon_no.values) > 0:
             for i in range(1,int(gene_exons.exon_no.max())+1):
-                
-                if whitelist:
-                    logging.debug( "Exon %s, %s variants" % (i, whitelist.get_variants_per_exon(gene, i)))
-                
-                data = list(pdf[pdf.exon_no == i].dp)
-                mean_x = pdf[pdf.exon_no == i].pos.mean()
-                        
-                if data and mean_x:
-                    #print i, np.mean(data[0]), mean_x
-                    ys.append(data)
-                    xs.append(i)
-                else:
+                if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+         
+                    if whitelist:
+                        logging.debug( "Exon %s, %s variants" % (i, whitelist.get_variants_per_exon(gene, i)))
+                    
+                    data = list(pdf[pdf.exon_no == i].dp)
+                    mean_x = pdf[pdf.exon_no == i].pos.mean()
+                            
+                    if data and mean_x:
+                        #print i, np.mean(data[0]), mean_x
+                        ys.append(data)
+                        xs.append(i)
+                    else:
+                        ys.append([0,0,0])
+                        xs.append(i)
+
+                    
+                else: # empty exon that can't have coverage
+                    midlevel = lower + (upper-lower)/2
+                    plt.text(i, midlevel, "X", fontsize=16)
+                    
                     ys.append([0,0,0])
                     xs.append(i)
         
@@ -237,13 +249,20 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
                 locs = []
                 labels = [] 
             
+                covered_exon_count = 0
                 for i in range(1,int(gene_exons.exon_no.max())+1):
-                    locs.append( i )
+                    if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+                        covered_exon_count += 1
+                        locs.append( i )
+                        
+                        var_count = whitelist.get_variants_per_exon(gene, i)
+                        label = "%s.\n(%s)" % (covered_exon_count, var_count)
+                        labels.append(label)
+                    else: # empty exon that can't have coverage
+                        locs.append( i )
+                        label = ""
+                        labels.append(label)
                     
-                    var_count = whitelist.get_variants_per_exon(gene, i)
-                    label = "%s.\n(%s)" % (i, var_count)
-                    labels.append(label)
-            
                 plt.xticks(locs, labels)
         
     plt.tight_layout()
