@@ -26,6 +26,8 @@ import CoverageCheckClasses
 # - fix capitalization error in plots
 # - exclude exons without amplicon
 
+script_folder = os.path.dirname(os.path.realpath(__file__)) + "/"
+
 #####################################################################################################################
 
 def parse_exons_into_dataframe_and_dict(exon_filename):
@@ -220,7 +222,7 @@ def run_bedtools_intersect(bed):
     
     output = bed.replace(".bed", "_covered_exon_locations.bed") 
     
-    bedtools_cmd = "intersectBed -u -a ../../scripts/HumanExons_Ensembl_v75_merged.bed -b %s > %s" % (bed, output)
+    bedtools_cmd = "intersectBed -u -a %s/HumanExons_Ensembl_v75_merged.bed -b %s > %s" % (script_folder, bed, output)
     logging.debug( bedtools_cmd )
     output_code = subprocess.call(bedtools_cmd, shell=True)
     
