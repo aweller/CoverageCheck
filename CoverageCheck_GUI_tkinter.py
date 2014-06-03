@@ -102,7 +102,7 @@ def run():
       pass
     else:
       root.destroy()
-      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist_filename=whitelist_file, allowed_bams=allowed_bams_file)
+      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist_filename=whitelist_file, target_bams_filename=allowed_bams_file)
     
 if __name__ == '__main__':
   root = Tk()
