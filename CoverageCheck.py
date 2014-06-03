@@ -10,11 +10,13 @@ import sys
 import subprocess
 import os
 import matplotlib.pylab as plt
-import seaborn as sns
 import numpy as np
 import pprint
 import logging
 import re
+
+import seaborn as sns
+sns.set(font="serif") # prevents error message about fonts
 
 # personal modules from the same folder
 import plot_exon_coverage as plotting
