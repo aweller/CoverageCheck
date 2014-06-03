@@ -212,16 +212,16 @@ if __name__ == '__main__':
   fixed_label.pack(side=LEFT)
   var_label.pack(side=RIGHT, expand=YES)
 
-  ###########################################
-  ## Show an error message
-  #
-  #error_msg = StringVar()
-  #error_msg.set("Please select your parameters")
-  #
-  #row = Frame(root)
-  #row.pack(side=TOP, fill=X, padx=5, pady=50)
-  #var_label = Label(row, textvariable = error_msg)
-  #var_label.pack(side=RIGHT, expand=YES)
+  ##########################################
+  # Show an error message
+  
+  error_msg = StringVar()
+  error_msg.set("Please select your parameters")
+  
+  row = Frame(root)
+  row.pack(side=TOP, fill=X, padx=5, pady=50)
+  var_label = Label(row, textvariable = error_msg)
+  var_label.pack(side=RIGHT, expand=YES)
   
   ###########################################
   # Create the buttons
