@@ -17,44 +17,62 @@ below the maximum accepted strand ratio.
 
 ##Usage
 
-CoverageCheck can be started directly from the command line:
-
-> *"python CoverageCheck.py regions.bed expected_variants.vcf"*
-
-Alternatively, a GUI is started with
+A GUI is started via a Desktop icon or directly from the command line
 
 > *"python CoverageCheck_GUI_tkinter.py".*
 
-The user provides:
-- the minimum accepted coverage
-- the maximum accepted strand ratio
-- the location of the bam folder, the region file and (optionally) a vcf file of expected variants. 
+CoverageCheck can also be started directly from the command line:
+
+> *"python CoverageCheck.py regions.bed expected_variants.vcf gene_aliases.txt accepted_bams.txt"*
+
+##Input
+
+CoverageCheck assumes that all input files are located in the same folder.
+The minimum accepted coverage and the maximum accepted strand ratio are set in the GUI.
+
+### Required
+- location of the bam folder
+
+- region file (Bed format or Illumina Manifest)
+CoverageCheck parses the gene names from amplicon names of type 'SMAD4_Exon_(2023461)_2777650' (as is the standard for Illumina custom panels).
+
+### Optional
+- expected variants (vcf format or export format of HGMD mutation mart)
+Specifiying this will lead to the creation of additional output files listing the 'theoretical discoverability' for each variant for the given cutoff values. Expected variants per exon will also be listed in the plots.
+
+- gene alias file (txt file, one gene per row, format: old_name new_name)
+This option is a simple hack to deal with amplicons that have gene names that differ from the offical names listed in the HumanExons_V75(...) file.  
+
+- allowed bams file (txt file, one bam per row)
+This option allows to analyze not all bams in the target folder by explicitly specifiying the bams to be analyzed. 
+
+##Output
 
 For each sample, CoverageCheck creates a results folder with the following output files:
 
-1. [sample]_coverage_raw_exon_coverage.png
+1. [samplename]_coverage_raw_exon_coverage.png
 
     A graph with a dot for each base, showing the coverage across exons per gene. Exons plotted on their actual chromosome location.
 
-2. [sample]_coverage_raw_exon_coverage.png
+2. [samplename]_coverage_raw_exon_coverage.png
 
     A graph with a boxplot for each exon, showing the coverage distribution across exons per gene. Exons are simply plotted next to each other.
 
-3. [sample]_failed_regions_coverage.tsv
+3. [samplename]_failed_regions_coverage.tsv
 
     A list of bases that fail the coverage cutoff. Continous streches of bases are summarized as a region. 
 
-4. [sample]_failed_regions_strandbias.tsv
+4. [samplename]_failed_regions_strandbias.tsv
 
     A list of bases that fail the strandbias cutoff. Continous streches of bases are summarized as a region. 
 
 If a list of expected variants is provided, two additional output files are produced:
 
-5. [sample]_expected_variant_coverage.tsv
+5. [samplename]_expected_variant_coverage.tsv
 
     A list of all variant position in the original vcf, with columns added for coverage, strandbias and whether the position passes the cutoffs.
 
-5. [sample]_expected_variant_coverage_per_gene.tsv
+5. [samplename]_expected_variant_coverage_per_gene.tsv
 
     A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be         theoretically discoverable and the ratio fo discoverable to total is listed.
 
