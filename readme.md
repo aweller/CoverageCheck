@@ -33,7 +33,7 @@ The minimum accepted coverage and the maximum accepted strand ratio are set in t
 ### Required
 - location of the bam folder
 
-- region file (Bed format or Illumina Manifest)
+- *region file* (Bed format or Illumina Manifest)
 
 CoverageCheck parses the gene names from amplicon names of type 'SMAD4_Exon_(2023461)_2777650' (as is the standard for Illumina custom panels).
 
