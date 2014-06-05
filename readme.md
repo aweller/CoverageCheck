@@ -23,7 +23,24 @@ A GUI is started via a Desktop icon or directly from the command line
 
 CoverageCheck can also be started directly from the command line:
 
-> *"python CoverageCheck.py regions.bed expected_variants.vcf gene_aliases.txt accepted_bams.txt"*
+> usage: CoverageCheck.py [-h] -b BED [-x EXPECTED_VARIANTS] [-a ALIAS]
+>                        [-w WHITELIST] [-c MIN_COVERAGE] [-s MAX_STRANDRATIO]
+>
+>  -b BED, --bed BED     region file in bed or Illumina Manifest format
+>
+>
+>optional arguments:
+>  -h, --help            show this help message and exit
+>  -x EXPECTED_VARIANTS, --expected_variants EXPECTED_VARIANTS
+>                        expected variants in vcf or HGMD BioMart export format
+>  -a ALIAS, --alias ALIAS
+>                        gene name aliases, format: [old new]
+>  -w WHITELIST, --whitelist WHITELIST
+>                        list of bams to analyse
+>  -c MIN_COVERAGE, --min_coverage MIN_COVERAGE
+>                        minimum coverage (Default: 50X)
+>  -s MAX_STRANDRATIO, --max_strandratio MAX_STRANDRATIO
+>                        maximum strand ratio (Default: 5)
 
 ##Input
 
