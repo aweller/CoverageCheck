@@ -289,8 +289,9 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
     logging.info( "Gene Name Aliases detected: " + gene_alias_filename )
         
     if os.path.exists(fixed_bed_name):
-            logging.info( "Switching to existing fixed bed file: " + fixed_bed_name )
-            return fixed_bed_name
+        logging.info( "Switching to existing fixed bed file: " + fixed_bed_name )
+        return fixed_bed_name
+    
     else:
         logging.info( "Fixing gene names in bedfile." )
     
@@ -319,7 +320,7 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
                 if amplicon != new_amplicon:
                     logging.debug("Replaced %s with %s" % (amplicon, new_amplicon))
         out.close()
-        return 
+        return fixed_bed_name
 
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
@@ -478,30 +479,44 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
 ##################################################################################
 
 if __name__ == "__main__":
-    bed = sys.argv[1]
-    whitelist_filename = sys.argv[2]
-    gene_alias_filename = sys.argv[3]
-    target_bams_filename = sys.argv[4]
     
-    if whitelist_filename == "None":
-        whitelist_filename = None
-        
-    if gene_alias_filename == "None":
-        gene_alias_filename = None
+    import argparse
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-b", "--bed", help="region file in bed or Illumina Manifest format",
+                        required=True)
 
-    if target_bams_filename == "None":
-        target_bams_filename = None
+    parser.add_argument("-x", "--expected_variants", help="expected variants in vcf or HGMD BioMart export format")
+    parser.add_argument("-a", "--alias", help="gene name aliases, format: [old new]")
+    parser.add_argument("-w", "--whitelist", help="list of bams to analyse")
+
+    parser.add_argument("-c", "--min_coverage",  type=int, help="minimum coverage (Default: 50X)", default=50)
+    parser.add_argument("-s", "--max_strandratio", type=float, help="maximum strand ratio (Default: 5)", default=5.0)
+    
+    args = parser.parse_args()
+    pprint.pprint(args)
+       
+    ##################################################################################
+    
+    bed = args.bed
+    whitelist_filename = args.expected_variants
+    gene_alias_filename = args.alias
+    target_bams_filename = args.whitelist
+    min_dp = args.min_coverage
+    max_strand_ratio = args.max_strandratio
     
     if "/" in bed:
         target_folder = "/".join(bed.split("/")[:-1]) + "/"
     else:
         target_folder = "./"
     
-    min_dp = 50
-    max_strand_ratio = 5
-    
-    run(bed, target_folder, min_dp, max_strand_ratio,
-        whitelist_filename=whitelist_filename, gene_alias_filename=gene_alias_filename, target_bams_filename=target_bams_filename)
+    run(bed,
+        target_folder,
+        min_dp,
+        max_strand_ratio,
+        whitelist_filename=whitelist_filename,
+        gene_alias_filename=gene_alias_filename,
+        target_bams_filename=target_bams_filename)
 
     
     

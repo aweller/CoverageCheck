@@ -1,7 +1,7 @@
 import os
 
 def unite(output, target_folder = "./"):
-	files = [x for x in os.listdir(target_folder) if x.endswith("_coverage.tsv")]
+	files = [x for x in os.listdir(target_folder) if x.endswith("_coverage.csv")]
 	
 	with open(target_folder + output, "w") as out:
 		for filename in files:
@@ -17,7 +17,7 @@ def unite(output, target_folder = "./"):
 
 if __name__ == '__main__':
 
-	files = [x for x in os.listdir(".") if x.endswith("_coverage.tsv")]
+	files = [x for x in os.listdir(".") if x.endswith("_coverage.csv")]
 	
 	for filename in files:
 	
