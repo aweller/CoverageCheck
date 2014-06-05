@@ -87,18 +87,18 @@ To recreate HumanExons_Ensembl_v75_refseqs.bed, execute these steps:
 1. Go to http://www.ensembl.org/biomart/
 2. Download a file that links Ensembl IDs with RefSeq IDs ("refseq.csv")
 
-Format: 
-> EnsemblGeneID EnsemblTranscriptID RefSeqmRNA
+    Format: 
+    > EnsemblGeneID EnsemblTranscriptID RefSeqmRNA
 
 2. Download a second file that contains information on exons ("exons.csv")
 
-Format: 
-> EnsemblGeneID EnsemblTranscriptID ExonChrStart ExonChrEnd ConstitutiveExon ExonRankinTranscript ChromosomeName AssociatedGeneName Strand
+    Format: 
+    > EnsemblGeneID EnsemblTranscriptID ExonChrStart ExonChrEnd ConstitutiveExon ExonRankinTranscript ChromosomeName AssociatedGeneName Strand
 
 3. Run create_refseq_bed_from_2_biomart_tables.py on the 2 files to create a bed file using the transcripts with the oldest RefSeqIDs per gene:
 
-Usage:
-> python create_refseq_bed_from_2_biomart_tables.py refseq.csv exons.csv > HumanExons_Ensembl_v75_refseqs.bed
+    Usage:
+    > python create_refseq_bed_from_2_biomart_tables.py refseq.csv exons.csv > HumanExons_Ensembl_v75_refseqs.bed
 
 #####################################################################################
 ##Dependencies
