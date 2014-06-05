@@ -2,7 +2,7 @@
 
 ##Introduction
 
-This script was mainly written for a clinical diagnostics setting. The use case is where a group of patients was sequenced using a panel. It is crucial to distinguish between 
+This script was mainly written for end users in a clinical diagnostics setting. The use case is routine panel sequencing of patients on Illumina MiSeq/HiSeq or Lifetech PGM/Proton. It is crucial to distinguish between 
 
 A) high-confidence positions with a reference allele and
 
@@ -81,8 +81,6 @@ If a list of expected variants is provided, two additional output files are prod
 
 ##Dependencies
 
-All bams to be analyzed need to be in a folder, together with the  file specifying the sequenced regions (in bed or Illumina manifest format). 
+CoverageCheck expects a Linux system with Python 2.7 and bedtools (2.17.0+) installed. The following Python packages are expected as well: numpy (1.8.1+), pandas (0.13.1+), matplotlib (1.3.1+) and seaborn (0.3+).
 
-CoverageCheck expects a Linux system with Python 2.7 and bedtools installed. The following Python packages are expected as well: numpy, pandas, matplotlib and seaborn.
-
-The bam files need to be indexed (i.e. have a *.bam.bai file in the same folder). If missing, this can be created with "samtools index sample.bam"
+The bam files need to be indexed (i.e. have a '\*.bam.bai' file in the same folder). If missing, this can be created with "samtools index sample.bam"

@@ -1,6 +1,6 @@
 # read a bedtools output file from
 #
-# bedtools coverage -abam Q2PL2_H01_N.bam -b TSB_148_gene_panel_HP_amplicons.bed -d > test_coverage.tsv
+# bedtools coverage -abam Q2PL2_H01_N.bam -b TSB_148_gene_panel_HP_amplicons.bed -d > test_coverage.csv
 #
 # and find bases with coverage or strand_ratio below the threshold
 
@@ -39,8 +39,8 @@ def parse_exons_into_dataframe_and_dict(exon_filename):
     2. exons_per_gene (dictionary of gene:[start, stop, exon_no])
     """
     
-    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.tsv"
-    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_all_genes_merged.tsv"
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v65_merged.csv"
+    #exon_filename = "/home/andreas/bioinfo/core/general/data/HumanExons_Ensembl_v75_all_genes_merged.csv"
 
     header = ["chrom", "exon_start", "exon_stop", "gene", "exon_no", "strand"]
     exons = pd.read_csv(exon_filename, sep="\t", names=header)
@@ -126,10 +126,14 @@ def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samp
     bad_bases = 0
     
     sample = samplename
-    bad_output_name = target_folder + sample + "_failed_regions_%s.tsv" % (trait)
+    bad_output_name = target_folder + sample + "_failed_regions_%s_cutoff_%s.csv" % (trait, trait_cutoff)
     bad_output = open(bad_output_name, "w")
     
-    output_header = ["gene", "chrom", "start", "stop", "mean_strand_bias", "size"]
+    if trait == "strandbias":
+        output_header = ["gene", "chrom", "start", "stop", "mean_strand_bias", "size"]
+    elif trait == "coverage":
+        output_header = ["gene", "chrom", "start", "stop", "mean_coverage", "size"]
+    
     bad_output.write("\t".join(output_header) + "\n")
 
     for index, pandas_dict in coverage_matrix.iterrows():
@@ -224,7 +228,7 @@ def run_bedtools_intersect(bed):
     
     output = bed.replace(".bed", "_covered_exon_locations.bed") 
     
-    bedtools_cmd = "intersectBed -u -a %s/HumanExons_Ensembl_v75_merged.bed -b %s > %s" % (script_folder, bed, output)
+    bedtools_cmd = "intersectBed -u -a %s/HumanExons_Ensembl_v75_refseqs.bed -b %s > %s" % (script_folder, bed, output)
     logging.debug( bedtools_cmd )
     output_code = subprocess.call(bedtools_cmd, shell=True)
     
@@ -319,9 +323,12 @@ def fix_gene_names_in_bedfile(bed, gene_alias_filename):
 
 def remove_empty_files_from_folder(folder):
     for filename in os.listdir(folder):
-        if os.path.getsize(folder +"/"+ filename) == 0:
-            os.remove(folder +"/"+ filename)
-
+        try:
+            if os.path.getsize(folder +"/"+ filename) == 0:
+                os.remove(folder +"/"+ filename)
+        except:
+            pass
+        
 #####################################################################################################################
 #####################################################################################################################
 
@@ -416,7 +423,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         ##############################################################################################
         # create the coverage file (if necessary) and parse it into a pandas DF
         
-        bedtools_output = target_folder + samplename + "_coverage.tsv"
+        bedtools_output = target_folder + samplename + "_coverage.csv"
         
         if not os.path.exists(bedtools_output):
             logging.info( "Running bedtools coverage for: " + bam )
@@ -456,7 +463,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     
     sampleinfo.print_output()
     
-    all_sample_filename = "all_samples.tsv"
+    all_sample_filename = "all_samples.csv"
     UniteCoverage.unite(all_sample_filename, target_folder = target_folder)
     
     byte_size = os.path.getsize(target_folder+all_sample_filename)

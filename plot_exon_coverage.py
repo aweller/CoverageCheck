@@ -157,7 +157,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
                     #    label = str(i) + "\n"
                     
                     labels.append(label)
-                
+                    
             plt.xticks(locs, labels)
         
         except:
@@ -251,17 +251,17 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
             
                 covered_exon_count = 0
                 for i in range(1,int(gene_exons.exon_no.max())+1):
-                    if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
-                        covered_exon_count += 1
-                        locs.append( i )
-                        
-                        var_count = whitelist.get_variants_per_exon(gene, i)
-                        label = "%s.\n(%s)" % (covered_exon_count, var_count)
-                        labels.append(label)
-                    else: # empty exon that can't have coverage
-                        locs.append( i )
-                        label = ""
-                        labels.append(label)
+                    #if len(gene_exons[gene_exons.exon_no == i]) > 0: # exons have matching amplicons
+                    covered_exon_count += 1
+                    locs.append( i )
+                    
+                    var_count = whitelist.get_variants_per_exon(gene, i)
+                    label = "%s.\n(%s)" % (covered_exon_count, var_count)
+                    labels.append(label)
+                    #else: # empty exon that can't have coverage
+                    #    locs.append( i )
+                    #    label = ""
+                    #    labels.append(label)
                     
                 plt.xticks(locs, labels)
         
