@@ -78,7 +78,29 @@ If a list of expected variants is provided, two additional output files are prod
     A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be         theoretically discoverable and the ratio fo discoverable to total is listed.
 
 #####################################################################################
+##Fixed input
 
+CoverageCheck expects a bed file of exon locations. By default, this is the file HumanExons_Ensembl_v75_refseqs.bed, but any other list of input exons can be defined.
+
+To recreate HumanExons_Ensembl_v75_refseqs.bed, execute these steps:
+
+1. Go to http://www.ensembl.org/biomart/
+2. Download a file that links Ensembl IDs with RefSeq IDs ("refseq.csv")
+
+Format: 
+> EnsemblGeneID EnsemblTranscriptID RefSeqmRNA
+
+2. Download a second file that contains information on exons ("exons.csv")
+
+Format: 
+> #EnsemblGeneID EnsemblTranscriptID ExonChrStart ExonChrEnd ConstitutiveExon ExonRankinTranscript ChromosomeName AssociatedGeneName Strand
+
+3. Run create_refseq_bed_from_2_biomart_tables.py on the 2 files to create a bed file using the transcripts with the oldest RefSeqIDs per gene:
+
+Usage:
+> python create_refseq_bed_from_2_biomart_tables.py refseq.csv exons.csv > HumanExons_Ensembl_v75_refseqs.bed
+
+#####################################################################################
 ##Dependencies
 
 CoverageCheck expects a Linux system with Python 2.7 and bedtools (2.17.0+) installed. The following Python packages are expected as well: numpy (1.8.1+), pandas (0.13.1+), matplotlib (1.3.1+) and seaborn (0.3+).
