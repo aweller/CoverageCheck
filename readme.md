@@ -30,14 +30,14 @@ CoverageCheck can also be started directly from the command line:
 CoverageCheck assumes that all input files are located in the same folder.
 The minimum accepted coverage and the maximum accepted strand ratio are set in the GUI.
 
-### Required
+#### Required
 - **location of the bam folder**
 
 - **region file** (Bed format or Illumina Manifest)
 
 CoverageCheck parses the gene names from amplicon names of type 'SMAD4_Exon_(2023461)_2777650' (as is the standard for Illumina custom panels).
 
-### Optional
+#### Optional
 - **expected variants** (vcf format or export format of HGMD mutation mart)
 Specifiying this will lead to the creation of additional output files listing the 'theoretical discoverability' for each variant for the given cutoff values. Expected variants per exon will also be listed in the plots.
 
