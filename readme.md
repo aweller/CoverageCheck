@@ -13,8 +13,8 @@ Without coverage information, A) and B) would look the same on a clinical report
 High-confidence positions are defined as having a coverage above the minimum accepted coverage (default 50X) and a ratio of coverage on minus vs plus strand (default 5x)
 below the maximum accepted strand ratio.
 
-[![Raw coverage](https://github.com/aweller/CoverageCheck/blob/master/example_plots/F8_raw_exon_coverage.png)](#features)
-[![Mean coverage per exon](https://github.com/aweller/CoverageCheck/blob/master/example_plots/F8_mean_exon_coverage.png)](#features)
+[![Raw coverage](example_plots/F8_raw_exon_coverage.png)]
+[![Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)]
 
 #####################################################################################
 
