@@ -15,7 +15,7 @@ below the maximum accepted strand ratio.
 
 #Plots
 
-[Raw coverage](example_plots/F8_raw_exon_coverage.png)
+[![Raw coverage](example_plots/F8_raw_exon_coverage.png)]
 This plot shows the raw coverage on the plus strand (upper part) and the minus strand (lower part). Exons (blue) and amplicons (red) are in the center.
 The number below each exon refers to the exon rank in RefSeq, while the number in brackets show the expected variants in this exon (if supplied).
 Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
