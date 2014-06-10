@@ -6,6 +6,8 @@ import logging
 import sys
 import os
 
+from CoverageCheckConfig import *
+
 script_folder = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 #####################################################################################################################
@@ -118,7 +120,9 @@ class ExpectedVariants():
         ###########################################################
         # parse the gene locations
         
-        with open(script_folder + "human_gene_locations.txt") as handle:
+        gene_location_file = script_folder + "/input/" + human_gene_location_file
+        
+        with open(gene_location_file) as handle:
             for row in handle:
                 f = row.strip().split("\t")
                 chrom, start, stop, gene = f[0], int(f[1]), int(f[2]), f[3]

@@ -270,7 +270,7 @@ def run_bedtools_intersect(bed):
     
     output = bed.replace(".bed", "_covered_exon_locations.bed") 
     
-    bedtools_cmd = "intersectBed -u -a %s/HumanExons_Ensembl_v75_refseqs.bed -b %s > %s" % (script_folder, bed, output)
+    bedtools_cmd = "intersectBed -u -a %s/input/%s -b %s > %s" % (script_folder, human_exon_file, bed, output)
     logging.debug( bedtools_cmd )
     output_code = subprocess.call(bedtools_cmd, shell=True)
     
