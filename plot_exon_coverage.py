@@ -38,7 +38,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     #    if not exons_per_gene.get(gene):
     #        exons_per_gene[gene] = []
     #        
-    #    exons_per_gene[gene].append((start, stop, exon_no))
+    #    exons_per_gene[gene].append((start, stop, exon_no))$
     
     #######################################################################################
     # df: per base
@@ -94,7 +94,8 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     all_genes = df.gene.unique()
     all_genes.sort()
     
-    plot_no = 0
+    plot_no = 0#######################################################################################
+
     
     figure_length = len(all_genes)
     plt.figure(figsize=(15, figure_length))
@@ -102,7 +103,6 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     upper = np.percentile(df[df.dp > 0].dp, 90)
     lower = -np.percentile(df[df.dp > 0].dp, 40)
     plt.ylim(lower, upper)
-        
     for gene in all_genes:
         plot_no += 1
         plt.subplot(len(all_genes), 1, plot_no)
@@ -113,10 +113,10 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
             
             ######################################################################
         
-            gene_exons = exons[(exons.gene_upper == gene)]
+            gene_exons = exons[(gene_exons.gene_upper == gene)]
             
             gene_exons.apply(plot_exon, axis =1 )
-        
+            
             x_start = int(gene_exons.head(1).exon_start) - 1000
             x_stop = int(gene_exons.tail(1).exon_start) + 1000 
             
@@ -272,6 +272,7 @@ def plot_exon_coverage(filename, exons=None, exons_per_gene = None, target_folde
     plt.savefig(title.replace(" ", "_")+".png", dpi=300)
     plt.close()
 
+    return df
 
 ####################################################################################
 

@@ -23,7 +23,7 @@ A GUI is started via a Desktop icon or directly from the command line
 
 CoverageCheck can also be started directly from the command line:
 
-> usage: CoverageCheck.py [-h] -b BED [-x EXPECTED_VARIANTS] [-a ALIAS]
+> CoverageCheck.py [-h] -b BED [-x EXPECTED_VARIANTS] [-a ALIAS]
 >                        [-w WHITELIST] [-c MIN_COVERAGE] [-s MAX_STRANDRATIO]
 
 ##Input

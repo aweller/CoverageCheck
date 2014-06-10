@@ -4,6 +4,9 @@ import numpy as np
 import pprint
 import logging
 import sys
+import os
+
+script_folder = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 #####################################################################################################################
 
@@ -82,8 +85,8 @@ class SampleInfo():
         
         for sample, infos in self.dict.iteritems():
             output = [sample, ]
-            output.extend(infos["strandbias"])
-            output.extend(infos["coverage"])
+            output.extend(infos.get("strandbias", "-"))
+            output.extend(infos.get("coverage", "-"))
             out.write("\t".join([str(x) for x in output]) + "\n")
         out.close()
 
@@ -115,7 +118,7 @@ class ExpectedVariants():
         ###########################################################
         # parse the gene locations
         
-        with open("/home/andreas/bioinfo/projects/nhs_coverage_tool/scripts/human_gene_locations.txt") as handle:
+        with open(script_folder + "human_gene_locations.txt") as handle:
             for row in handle:
                 f = row.strip().split("\t")
                 chrom, start, stop, gene = f[0], int(f[1]), int(f[2]), f[3]
@@ -199,9 +202,9 @@ class ExpectedVariants():
                 exon_no = 0 
                 self.dict[chrompos]["exon_no"] = 0
                 
-                logging.debug( "-" * 150 )
-                logging.debug( row, )
-                logging.debug( "Gene: " + gene )
+                #logging.debug( "-" * 150 )
+                #logging.debug( row, )
+                #logging.debug( "Gene: " + gene )
                 
                 for region in self.exon_dict.get(gene, []):
                     if region[0] < int(pos) <  region[1]:
@@ -213,7 +216,7 @@ class ExpectedVariants():
                 else:
                     self.variants_per_exon[gene][exon_no] += 1
                 
-                logging.debug( "Exon_No: " + str(exon_no) )
+                #logging.debug( "Exon_No: " + str(exon_no) )
                 
     #####################################################################################################
         
@@ -268,7 +271,7 @@ class ExpectedVariants():
         
     def print_output(self):
         
-        outname = self.folder + self.sample + "_expected_variant_coverage.tsv"
+        outname = self.folder + self.sample + "_expected_variant_coverage.csv"
         
         with open(outname, "w") as out:
             

@@ -19,14 +19,11 @@ import seaborn as sns
 sns.set(font="serif") # prevents error message about fonts
 
 # personal modules from the same folder
-import plot_exon_coverage as plotting
+import plot_exon_coverage_v2 as plotting
 import plot_exon_coverage_all_samples as all_sample_plotting
 import unite_coverage_files as UniteCoverage
 import CoverageCheckClasses
-
-#todo
-# - fix capitalization error in plots
-# - exclude exons without amplicon
+from CoverageCheckConfig import *
 
 script_folder = os.path.dirname(os.path.realpath(__file__)) + "/"
 
@@ -47,6 +44,7 @@ def parse_exons_into_dataframe_and_dict(exon_filename):
     exons["gene_upper"] = exons.gene.str.upper()
     exons = exons.sort(columns = ["gene", "exon_start", "exon_stop"])
         
+    global exons_per_gene
     exons_per_gene = {}
     for _, row in exons.iterrows():
         gene = row["gene"].upper()
@@ -57,7 +55,7 @@ def parse_exons_into_dataframe_and_dict(exon_filename):
             exons_per_gene[gene] = []
             
         exons_per_gene[gene].append((start, stop, exon_no))
-        
+    
     return exons, exons_per_gene
 
 def parse_coverage_file_into_dataframe(coverage_file):
@@ -104,7 +102,51 @@ def parse_coverage_file_into_dataframe(coverage_file):
     df = df.sort(columns = ["chrom", "pos"])
     
     return df
+
+def parse_amplicons_into_df(bed, exons):
+    """
+    Parse the amplicons in the bedfile into a DF
+    Get rid of amplicons that are too far away from any exon (as defined in the exon file)
+    """
     
+    header = ["chrom", "start", "stop", "amplicon", "na", "strand"]
+    
+    raw_amplicons = pd.read_csv(bed, sep="\t", names=header)
+    raw_amplicons["gene"] = raw_amplicons.apply(lambda x: x["amplicon"].split("_")[0].upper(), axis=1)
+    raw_amplicons["altgene"] = raw_amplicons.apply(lambda x: x["amplicon"].split("_")[1].upper(), axis=1)
+
+    def crosscheck_gene_chromosome(row):
+        """ Check if this row is close enough to an exon """
+        offset = 5000
+        
+        gene = row["gene"]
+        altgene = row["altgene"]
+        chrom = row["chrom"]
+        start = row["start"]
+        stop = row["stop"]
+        
+        gexons = exons[exons.gene == gene]
+        
+        if len(gexons) > 0:
+            altgexons = exons[exons.gene == altgene]
+            if len(gexons) < len(altgexons):
+                gexons = altgexons
+            
+            chrom_ok = chrom == gexons.chrom.unique()[0]
+            start_ok = start > gexons.exon_start.min() - offset
+            stop_ok = stop < gexons.exon_start.max() + offset
+            
+            return all([chrom_ok, start_ok, stop_ok])
+        else:
+            #print "gexons empty for", gene
+            return False
+    
+    raw_amplicons["correct_chrom"] = raw_amplicons.apply(crosscheck_gene_chromosome, axis=1)
+    amplicons = raw_amplicons[raw_amplicons.correct_chrom]
+    amplicons = amplicons.drop_duplicates(cols=["start", "stop"]) # as in the  'separate strand' beds each exon is present twice
+    
+    return amplicons
+
 #####################################################################################################################
 
 def find_bad_positions(coverage_matrix, target_folder = None, trait = None, samplename = None,
@@ -358,7 +400,7 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     
     # set up logging to console
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
+    console.setLevel(logging.INFO)
     # set a format which is simpler for console use
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
     # add the handler to the root logger
@@ -375,9 +417,11 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     if gene_alias_filename:
         bed = fix_gene_names_in_bedfile(bed, gene_alias_filename)
     
+    # parse all exons and all proper amplicons into DataFrames
     exon_filename = run_bedtools_intersect(bed)
     exons, exons_per_gene = parse_exons_into_dataframe_and_dict(exon_filename)
-    #pprint.pprint(exons)
+
+    amplicons = parse_amplicons_into_df(bed, exons)
         
     # setup the class that collects stats on each sample    
     global sampleinfo
@@ -443,19 +487,21 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         ##############################################################################################
         # run
         
-        whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "coverage",
-                           samplename = samplename, trait_cutoff = min_dp, whitelist=whitelist)
-        whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "strandbias",
-                           samplename = samplename, trait_cutoff = max_strand_ratio, whitelist=whitelist)
-        
-        if whitelist_filename:
-            whitelist.print_output()
-        
+        if output_failed_regions:
+            whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "coverage",
+                               samplename = samplename, trait_cutoff = min_dp, whitelist=whitelist)
+            whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "strandbias",
+                               samplename = samplename, trait_cutoff = max_strand_ratio, whitelist=whitelist)
+            
+            if whitelist_filename:
+                whitelist.print_output()
+            
         ##############################################################################################
         # plot
         
-        plotting.plot_exon_coverage(bedtools_output, exons=exons, exons_per_gene = exons_per_gene,
-                                    target_folder = sample_output_folder, whitelist=whitelist)
+        if output_coverage_plots:
+            sample_df = plotting.create_all_coverage_plots(bedtools_output, exons=exons, exons_per_gene = exons_per_gene,
+                                        target_folder = sample_output_folder, whitelist=whitelist, amplicons=amplicons)
         logging.info(  "-" * 100 )
         
     ##############################################################################################
