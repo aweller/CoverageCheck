@@ -87,8 +87,8 @@ class SampleInfo():
         
         for sample, infos in self.dict.iteritems():
             output = [sample, ]
-            output.extend(infos.get("strandbias", "-"))
-            output.extend(infos.get("coverage", "-"))
+            output.extend(infos.get("coverage", ["-", "-", "-"]))
+            output.extend(infos.get("strandbias", ["-", "-", "-"]))
             out.write("\t".join([str(x) for x in output]) + "\n")
         out.close()
 

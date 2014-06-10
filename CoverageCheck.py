@@ -376,7 +376,7 @@ def remove_empty_files_from_folder(folder):
 #####################################################################################################################
 
 def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, gene_alias_filename=None, target_bams_filename=None):
-
+    
     if whitelist_filename == "None":
         whitelist_filename = None
     if gene_alias_filename == "None":
@@ -386,6 +386,11 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
 
     remove_empty_files_from_folder(target_folder) # remove empty files that might have been left over from previous runs
     
+    if " " in target_folder:
+        logging.critical( "The third-party tools used by CoverageCheck don't accept spaces in folder names." )
+        logging.critical( "Please replace the spaces in your bam folder with underscores.")
+        logging.critical( "Sorry, aborting..." )
+        
     ##############################################################################################
     # configure logging to both sys.stdout and a file 
     
@@ -487,12 +492,15 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
         ##############################################################################################
         # run
         
-        if output_failed_regions:
+        if output_undercovered_regions:
             whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "coverage",
                                samplename = samplename, trait_cutoff = min_dp, whitelist=whitelist)
+        
+        if output_strandbiased_regions:
             whitelist = find_bad_positions(coverage_matrix, target_folder = sample_output_folder, trait = "strandbias",
                                samplename = samplename, trait_cutoff = max_strand_ratio, whitelist=whitelist)
-            
+        
+        if output_undercovered_regions or output_strandbiased_regions:
             if whitelist_filename:
                 whitelist.print_output()
             
@@ -516,11 +524,12 @@ def run(bed, target_folder, min_dp, max_strand_ratio, whitelist_filename=None, g
     byte_size = os.path.getsize(target_folder+all_sample_filename)
     mb_size = byte_size/1.049e+6
     
-    if mb_size > 2000:
-        logging.error( "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2)) )     
-    else:
-        all_sample_plotting.plot_exon_coverage(all_sample_filename, exons=exons, exons_per_gene = exons_per_gene,
-                                               target_folder = target_folder, whitelist=whitelist)
+    if output_all_sample_summary:
+        if mb_size > 2000:
+            logging.error( "The united coverage size of all samples is %sMB. Skipping summary plots." % (round(mb_size,2)) )     
+        else:
+            all_sample_plotting.plot_exon_coverage(all_sample_filename, exons=exons, exons_per_gene = exons_per_gene,
+                                                   target_folder = target_folder, whitelist=whitelist)
         
 ##################################################################################
 
@@ -536,8 +545,8 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--alias", help="gene name aliases, format: [old new]")
     parser.add_argument("-w", "--whitelist", help="list of bams to analyse")
 
-    parser.add_argument("-c", "--min_coverage",  type=int, help="minimum coverage (Default: 50X)", default=50)
-    parser.add_argument("-s", "--max_strandratio", type=float, help="maximum strand ratio (Default: 5)", default=5.0)
+    parser.add_argument("-c", "--min_coverage",  type=int, help="minimum coverage (Default: 50X)", default=default_min_coverage)
+    parser.add_argument("-s", "--max_strandratio", type=float, help="maximum strand ratio (Default: 5)", default=default_max_strandbias)
     
     args = parser.parse_args()
     pprint.pprint(args)

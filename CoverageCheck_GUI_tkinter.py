@@ -2,6 +2,7 @@ from Tkinter import *
 from tkFileDialog   import askopenfilename, askdirectory      
 import CoverageCheck as CC
 import os
+from CoverageCheckConfig import *
 
 fields = 'Minimum Coverage', 'Maximum Strandbias'
 bamfolder = None
@@ -75,7 +76,7 @@ def run():
     allowed_bams_file = allowed_bams.get()
     aliases_file = aliases.get()
     min_dp_value = int(min_dp.get())
-    max_strand_ratio_value = int(max_strand_ratio.get())
+    max_strand_ratio_value = float(max_strand_ratio.get())
     #min_dp = int(ents[0][1].get())
     #max_strand_ratio = int(ents[1][1].get())
   
@@ -102,8 +103,12 @@ def run():
       pass
     else:
       root.destroy()
-      CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist_filename=whitelist_file, target_bams_filename=allowed_bams_file)
-    
+      
+      try:
+        CC.run(bed, target_folder, min_dp_value, max_strand_ratio_value, whitelist_filename=whitelist_file, target_bams_filename=allowed_bams_file)
+      except:
+        raise
+      
 if __name__ == '__main__':
   root = Tk()
   root.wm_title("CoverageCheck")
@@ -115,7 +120,7 @@ if __name__ == '__main__':
   # Select the min_dp
   
   min_dp = StringVar()
-  min_dp.set(50)
+  min_dp.set(default_min_coverage)
   
   row = Frame(root)
   label = Label(row, width=15, text="Minimum Coverage", anchor='w')
@@ -128,7 +133,7 @@ if __name__ == '__main__':
   # Select the max_strand_ratio
   
   max_strand_ratio = StringVar()
-  max_strand_ratio.set(5)
+  max_strand_ratio.set(default_max_strandbias)
   
   row = Frame(root)
   label = Label(row, width=15, text="Max. Strand Ratio", anchor='w')

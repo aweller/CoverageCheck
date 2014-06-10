@@ -443,7 +443,8 @@ def create_all_coverage_plots(filename, exons=None, exons_per_gene=None,
         logging.debug( "Creating per-gene plot of raw coverages." )
         for gene in all_genes:
             plot_raw_exon_coverage(gene, df=df, exons=exons, all_genes=all_genes, amplicons=amplicons, per_gene_output_folder=per_gene_output_folder, whitelist=whitelist, 
-                                   save_per_gene = True)  
+                                   save_per_gene = True)
+            plt.close()
     
     #######################################################################################    
     # plot boxplots vs exon counts
@@ -471,7 +472,8 @@ def create_all_coverage_plots(filename, exons=None, exons_per_gene=None,
         logging.debug( "Creating per-gene plot of mean coverages." )    
         for gene in all_genes:
             plot_mean_exon_coverage(gene, df=df, exons=exons, all_genes=all_genes, amplicons=amplicons, per_gene_output_folder=per_gene_output_folder, whitelist=whitelist, 
-                                   save_per_gene = True) 
+                                   save_per_gene = True)
+            plt.close()
 
     return df
 
