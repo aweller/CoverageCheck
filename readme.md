@@ -14,40 +14,6 @@ High-confidence positions are defined as having a coverage above the minimum acc
 below the maximum accepted strand ratio.
 
 #####################################################################################
-
-##Usage
-
-A GUI is started via a Desktop icon or directly from the command line
-
-> *"python CoverageCheck_GUI_tkinter.py".*
-
-CoverageCheck can also be started directly from the command line:
-
-> CoverageCheck.py [-h] -b BED [-x EXPECTED_VARIANTS] [-a ALIAS]
->                        [-w WHITELIST] [-c MIN_COVERAGE] [-s MAX_STRANDRATIO]
-
-##Input
-
-CoverageCheck assumes that all input files are located in the same folder.
-The minimum accepted coverage and the maximum accepted strand ratio are set in the GUI.
-
-#### Required
-- **location of the bam folder**
-
-- **region file** (Bed format or Illumina Manifest)
-
-CoverageCheck parses the gene names from amplicon names of type 'SMAD4_Exon_(2023461)_2777650' (as is the standard for Illumina custom panels).
-
-#### Optional
-- **expected variants** (vcf format or export format of HGMD mutation mart)
-Specifiying this will lead to the creation of additional output files listing the 'theoretical discoverability' for each variant for the given cutoff values. Expected variants per exon will also be listed in the plots.
-
-- **gene alias file** (txt file, one gene per row, format: old_name new_name)
-This option is a simple hack to deal with amplicons that have gene names that differ from the offical names listed in the HumanExons_V75(...) file.  
-
-- **allowed bams file** (txt file, one bam per row)
-This option allows to analyze not all bams in the target folder by explicitly specifiying the bams to be analyzed. 
-
 ##Output
 
 For each sample, CoverageCheck creates a results folder with the following output files:
@@ -81,6 +47,41 @@ If a list of expected variants is provided, two additional output files are prod
 4. **[samplename]_expected_variant_coverage_per_gene.tsv**
 
     A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be         theoretically discoverable and the ratio fo discoverable to total is listed.
+
+#####################################################################################
+##Usage
+
+A GUI is started via a Desktop icon or directly from the command line
+
+> *"python CoverageCheck_GUI_tkinter.py".*
+
+CoverageCheck can also be started directly from the command line:
+
+> CoverageCheck.py [-h] -b BED [-x EXPECTED_VARIANTS] [-a ALIAS]
+>                        [-w WHITELIST] [-c MIN_COVERAGE] [-s MAX_STRANDRATIO]
+
+#####################################################################################
+##Input
+
+CoverageCheck assumes that all input files are located in the same folder.
+The minimum accepted coverage and the maximum accepted strand ratio are set in the GUI.
+
+#### Required
+- **location of the bam folder**
+
+- **region file** (Bed format or Illumina Manifest)
+
+CoverageCheck parses the gene names from amplicon names of type 'SMAD4_Exon_(2023461)_2777650' (as is the standard for Illumina custom panels).
+
+#### Optional
+- **expected variants** (vcf format or export format of HGMD mutation mart)
+Specifiying this will lead to the creation of additional output files listing the 'theoretical discoverability' for each variant for the given cutoff values. Expected variants per exon will also be listed in the plots.
+
+- **gene alias file** (txt file, one gene per row, format: old_name new_name)
+This option is a simple hack to deal with amplicons that have gene names that differ from the offical names listed in the HumanExons_V75(...) file.  
+
+- **allowed bams file** (txt file, one bam per row)
+This option allows to analyze not all bams in the target folder by explicitly specifiying the bams to be analyzed. 
 
 #####################################################################################
 ##Fixed input
