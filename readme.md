@@ -13,8 +13,15 @@ Without coverage information, A) and B) would look the same on a clinical report
 High-confidence positions are defined as having a coverage above the minimum accepted coverage (default 50X) and a ratio of coverage on minus vs plus strand (default 5x)
 below the maximum accepted strand ratio.
 
-[![Raw coverage](example_plots/F8_raw_exon_coverage.png)]
-[![Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)]
+#Plots
+
+[Raw coverage](example_plots/F8_raw_exon_coverage.png)
+This plot shows the raw coverage on the plus strand (upper part) and the minus strand (lower part). Exons (blue) and amplicons (red) are in the center.
+The number below each exon refers to the exon rank in RefSeq, while the number in brackets show the expected variants in this exon (if supplied).
+Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
+
+[Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)
+This plot shows the mean coverage per exon. An X instead of a bar indicates that no amplicon was mapping to this exon, so no coverage can be expected with this panel.
 
 #####################################################################################
 
