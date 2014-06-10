@@ -13,16 +13,6 @@ Without coverage information, A) and B) would look the same on a clinical report
 High-confidence positions are defined as having a coverage above the minimum accepted coverage (default 50X) and a ratio of coverage on minus vs plus strand (default 5x)
 below the maximum accepted strand ratio.
 
-###Plots
-
-![Raw coverage](example_plots/F8_raw_exon_coverage.png)
-This plot shows the raw coverage on the plus strand (upper part) and the minus strand (lower part). Exons (blue) and amplicons (red) are in the center.
-The number below each exon refers to the exon rank in RefSeq, while the number in brackets show the expected variants in this exon (if supplied).
-Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
-
-![Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)
-This plot shows the mean coverage per exon. An X instead of a bar indicates that no amplicon was mapping to this exon, so no coverage can be expected with this panel.
-
 #####################################################################################
 
 ##Usage
@@ -62,29 +52,33 @@ This option allows to analyze not all bams in the target folder by explicitly sp
 
 For each sample, CoverageCheck creates a results folder with the following output files:
 
-1. **[samplename]_coverage_raw_exon_coverage.png**
+###Plots
 
-    A graph with a dot for each base, showing the coverage across exons per gene. Exons are plotted on their actual chromosome location.
+![Raw coverage](example_plots/F8_raw_exon_coverage.png)
+This plot shows the raw coverage on the plus strand (upper part) and the minus strand (lower part). Exons (blue) and amplicons (red) are in the center.
+The number below each exon refers to the exon rank in RefSeq, while the number in brackets show the expected variants in this exon (if supplied).
+Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
 
-2. **[samplename]_summarized_exon_coverage.png**
+![Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)
+This plot shows the mean coverage per exon. An X instead of a bar indicates that the panel doesn't include amplicons for this exon, so no coverage would be expected.
+Exons are simply plotted next to each other regardless of their real distance on the chromosome.
 
-    A graph with a boxplot for each exon, showing the coverage distribution across exons per gene. The scope of the y-axis is chosen automatically based on the highest coverage across the sample. This means that some boxplots will look 'cut off' because they are too tall. Exons are simply plotted next to each other regardless of their real distance on the chromosome. An X instead of a boxplot indicates that this exon doesn't have any amplicons mapping to it, so we wouldn't expect any coverage here. 
-
-3. **[samplename]_failed_regions_coverage.tsv**
+###Tables
+1. **[samplename]_failed_regions_coverage.tsv**
 
     A list of bases that fail the coverage cutoff. Continous streches of bases are summarized as a region. 
 
-4. **[samplename]_failed_regions_strandbias.tsv**
+2. **[samplename]_failed_regions_strandbias.tsv**
 
     A list of bases that fail the strandbias cutoff. Continous streches of bases are summarized as a region. 
 
 If a list of expected variants is provided, two additional output files are produced:
 
-5. **[samplename]_expected_variant_coverage.tsv**
+3. **[samplename]_expected_variant_coverage.tsv**
 
     A list of all variant position in the original vcf, with columns added for coverage, strandbias and whether the position passes the cutoffs.
 
-5. **[samplename]_expected_variant_coverage_per_gene.tsv**
+4. **[samplename]_expected_variant_coverage_per_gene.tsv**
 
     A list of all genes that contain at least one expected variant. For each gene, the total expected variants, the variants that have sufficient quality to be         theoretically discoverable and the ratio fo discoverable to total is listed.
 
