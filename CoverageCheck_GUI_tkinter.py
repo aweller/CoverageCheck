@@ -96,6 +96,14 @@ def run():
     if not bams:
       new_msg = "Bam folder does not contain bam files." 
       error_msg.set(new_msg)
+      
+    if " " in bed:
+      new_msg = "Theres a <space> in the bed, please remove." 
+      error_msg.set(new_msg)
+      
+    if " " in target_folder:
+      new_msg = "Theres a <space> in the bam folder, please remove." 
+      error_msg.set(new_msg)
         
     ##############################################################
     

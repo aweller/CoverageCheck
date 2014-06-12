@@ -29,5 +29,5 @@ output_coverage_plots = True
 output_per_gene_plots = True
 
 # create the (still ugly) summary plots for all samples?
-# this might be slowing the computer down
+# this might be slowing the computer down!
 output_all_sample_summary = True
