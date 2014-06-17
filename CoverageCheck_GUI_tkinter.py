@@ -1,3 +1,6 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
+
 from Tkinter import *
 from tkFileDialog   import askopenfilename, askdirectory      
 import CoverageCheck as CC

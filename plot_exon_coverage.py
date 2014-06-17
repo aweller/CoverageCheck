@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt

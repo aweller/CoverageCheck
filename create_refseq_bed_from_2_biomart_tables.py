@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
 # reads a file that maps GeneID <> Transcript ID <> RefSeq ID of the format
 #
 #Ensembl Gene ID	Ensembl Transcript ID	RefSeq mRNA [e.g. NM_001195597]

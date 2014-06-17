@@ -112,3 +112,8 @@ To recreate HumanExons_Ensembl_v75_refseqs.bed, execute these steps:
 CoverageCheck expects a Linux system with Python 2.7 and bedtools (2.17.0+) installed. The following Python packages are expected as well: numpy (1.8.1+), pandas (0.13.1+), matplotlib (1.3.1+) and seaborn (0.3+).
 
 The bam files need to be indexed (i.e. have a '\*.bam.bai' file in the same folder). If missing, this can be created with "samtools index sample.bam"
+
+#####################################################################################
+##Licence
+
+Released under a BSD (3-clause) license

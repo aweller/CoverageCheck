@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
 # convert an Illumina manifest file to a bed file
 
 import sys

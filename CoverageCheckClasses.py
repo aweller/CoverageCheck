@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
 # contains the Classes for CoverageCheck
 
 import numpy as np

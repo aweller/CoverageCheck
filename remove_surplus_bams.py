@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
 # remove all files from current folder that don't start with samplename defined in sysargv file
 
 import os

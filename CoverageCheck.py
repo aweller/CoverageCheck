@@ -1,3 +1,5 @@
+# Copyright (C) 2014 Andreas M. Weller <andreas.m.weller@gmail.com>
+#
 # read a bedtools output file from
 #
 # bedtools coverage -abam Q2PL2_H01_N.bam -b TSB_148_gene_panel_HP_amplicons.bed -d > test_coverage.csv
@@ -26,6 +28,13 @@ import CoverageCheckClasses
 from CoverageCheckConfig import *
 
 script_folder = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+DISTNAME = 'coveragecheck'
+MAINTAINER = 'Andreas Weller'
+MAINTAINER_EMAIL = 'andreas.m.weller@gmail.com'
+LICENSE = 'BSD (3-clause)'
+DOWNLOAD_URL = 'https://github.com/aweller/CoverageCheck/'
+VERSION = '0.1'
 
 #####################################################################################################################
 
