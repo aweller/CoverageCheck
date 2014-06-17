@@ -13,7 +13,7 @@ def convert_manifest(manifest_file):
     all_out = open(all_out_file, "w")
     plusminus = open(plusminus_out_file, "w")
     
-    with open(manifest_file) as handle:
+    with open(manifest_file, 'rU') as handle:
         for row in handle:
             f = row.strip().split("\t")
             
