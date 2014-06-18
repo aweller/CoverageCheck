@@ -20,14 +20,14 @@ For each sample, CoverageCheck creates a results folder with the following outpu
 
 ###Plots
 
+![Raw coverage](example_plots/Coveragecheck_output_illustration.png)
+Illustration of the raw coverage plots. Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
+
 ![Raw coverage](example_plots/F8_raw_exon_coverage.png)
-This plot shows the raw coverage on the plus strand (upper part) and the minus strand (lower part). Exons (blue) and amplicons (red) are in the center.
-The number below each exon refers to the exon rank in RefSeq, while the number in brackets show the expected variants in this exon (if supplied).
-Exon sizes are to scale, while introns have been shrunken to allow fitting everything into one plot.
+This plot shows the raw coverage for the complete F8 gene. Overall exon coverage is uniform and very good. It's easy to see how the amplicons have been designed to overlap each other and cover all exons.
 
 ![Mean coverage per exon](example_plots/F8_mean_exon_coverage.png)
-This plot shows the mean coverage per exon. An X instead of a bar indicates that the panel doesn't include amplicons for this exon, so no coverage would be expected.
-Exons are simply plotted next to each other regardless of their real distance on the chromosome.
+This plot shows the mean coverage per exon. An X instead of a bar indicates that the panel doesn't include amplicons for this exon, so no coverage would be expected. Exons are simply plotted next to each other regardless of their real distance on the chromosome.
 
 ###Tables
 1. **[samplename]_failed_regions_coverage.tsv**

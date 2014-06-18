@@ -235,7 +235,7 @@ if __name__ == '__main__':
   error_msg.set("Please select your parameters")
   
   row = Frame(root)
-  row.pack(side=TOP, fill=X, padx=5, pady=50)
+  row.pack(side=TOP, fill=X, padx=5, pady=5)
   var_label = Label(row, textvariable = error_msg)
   var_label.pack(side=RIGHT, expand=YES)
   
