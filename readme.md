@@ -107,6 +107,13 @@ To recreate HumanExons_Ensembl_v75_refseqs.bed, execute these steps:
     > python create_refseq_bed_from_2_biomart_tables.py refseq.csv exons.csv > HumanExons_Ensembl_v75_refseqs.bed
 
 #####################################################################################
+##Installation on Windows/OSX
+
+CoverageCheck only supports installation on Linux. However, it can be run on other operating systems using a ready-to-use Virtual Machine Image
+for VirtualBox hosted on the John Radcliffe Hospitals Molecular Diagnostics Department: http://www.oxford-translational-molecular-diagnostics.org.uk/
+See **virtual_machine_installation_readme.txt** in this repository for installation instructions.
+
+#####################################################################################
 ##Dependencies
 
 CoverageCheck expects a Linux system with Python 2.7 and bedtools (2.17.0+) installed. The following Python packages are expected as well: numpy (1.8.1+), pandas (0.13.1+), matplotlib (1.3.1+) and seaborn (0.3+).
