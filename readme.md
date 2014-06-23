@@ -110,7 +110,7 @@ To recreate HumanExons_Ensembl_v75_refseqs.bed, execute these steps:
 ##Installation on Windows/OSX
 
 CoverageCheck only supports installation on Linux. However, it can be run on other operating systems using a ready-to-use Virtual Machine Image
-for VirtualBox hosted by the JR Hospitals Molecular Diagnostics Department: http://www.oxford-translational-molecular-diagnostics.org.uk/
+for VirtualBox hosted by the JR Hospitals Molecular Diagnostics Department: http://www.oxford-translational-molecular-diagnostics.org.uk/software
 See **virtual_machine_installation_readme.txt** in this repository for installation instructions.
 
 #####################################################################################
